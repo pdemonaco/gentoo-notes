@@ -1,0 +1,80 @@
+#!/bin/bash
+
+#### Emerge Xen & Tools ==========================================
+#
+# Unmask the current version
+echo ">=app-emulation/xen-4.5.0-r5 ~amd64" >> /etc/portage/package.accept_keywords
+echo ">=app-emulation/xen-tools-4.5.0-r3 ~amd64" >> /etc/portage/package.accept_keywords
+echo ">=app-emulation/xen-pvgrub-4.5.0-r1 ~amd64" >> /etc/portage/package.accept_keywords
+
+# Add some use flags
+echo "app-emulation/xen efi" >> /etc/portage/package.use/xen
+echo "app-emulation/xen-tools api" >> /etc/portage/package.use/xen
+echo "app-emulation/xen-tools hvm" >> /etc/portage/package.use/xen
+echo "app-emulation/xen-tools ovmf" >> /etc/portage/package.use/xen
+echo "app-emulation/xen-tools pygrub" >> /etc/portage/package.use/xen
+echo "app-emulation/xen-tools qemu" >> /etc/portage/package.use/xen
+echo "app-emulation/xen-tools screen" >> /etc/portage/package.use/xen
+
+# Add dependent use flags
+echo "sys-devel/binutils multitarget" >> /etc/portage/package.use/binutils
+echo "dev-lang/python sqlite" >> /etc/portage/package.use/python
+
+# Emerge our Xen Tools
+emerge -av xen xen-tools xen-pvgrub gentoo-sources
+
+# Update kernel configuration
+# Bunch of stuff
+
+# Ensure the "xen" target is included in our grub targets
+
+# Place the configuration where grub will find it
+cp /usr/src/linux/.config /etc/kernels/kernel-config-3.18.11-gentoo-04
+
+# Add some defaults to protect dom0 from ballooning
+# /etc/default/grub
+#   - default menu entry
+#   - xen dom0 memory settings
+#   - xen set pvh mode for dom0
+# /etc/sbin/xl
+
+# Setup runlevel scripts
+# based on the following guide
+# http://michaelmk.blogspot.com/2012/05/different-runlevels-in-gentoo.html
+# http://wiki.xen.org/wiki/Tuning_Xen_for_Performance
+install -d /etc/runlevels/xen
+
+# Add all the current default runlevels to xen
+for SERVICE in $(ls /etc/runlevels/default)
+do
+    rc-update add $SERVICE xen
+done
+
+# Add the new runlevels
+rc-update add xencommons xen
+rc-update add xenconsoled xen
+rc-update add xendomains xen
+rc-update add xenstored xen
+rc-update add xen-watchdog xen
+
+# Create some handy filesystems for XEN & configs
+zfs create -o mountpoint=none syspool/XEN
+zfs create -o mountpoint=/etc/xen/config syspool/XEN/config
+zfs create -o mountpoint=/mnt/xen/boot syspool/XEN/boot
+zfs create -o mountpoint=/mnt/xen/image syspool/XEN/image
+zfs create -o mountpoint=none syspool/XEN/vdisk
+
+# Configure bridged network interface
+# Update /etc/conf.d/net
+cd /etc/init.d/; ln -s net.lo net.xenbr0; cd -
+rc-update add net.xenbr0 xen
+
+# Update /etc/sysctl.conf
+net.ipv4.ip_forward = 1
+net.ipv4.conf.enp6s0.proxy_arp = 1
+
+## Prepare pvboot
+# Create a starter config for our image
+echo "normal (memdisk)/grub.cfg" >> /tmp/grub-bootstrap.cfg
+# Generate the image
+grub2-mkimage -O x86_64-xen -c /tmp/grub-bootstrap.cfg -m /tmp/memdisk.tar -o grub-x86-64-xen.bin /usr/lib/grub/x86_64-xen/*.mod
