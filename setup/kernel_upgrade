@@ -1,23 +1,34 @@
 #!/bin/bash
 # Follow gentoo kernel wiki
 
-# Make sure spl is rebuilt against the new kernel
-emerge -av @module-rebuild
+#=== ZFS Builtin =============================================================
+# Make sure spl is rebuilt against the new kernel and is installed
+emerge -1av sys-kernel/spl
 
 # Install ZFS
-env EXTRA_ECONF='--enable-linux-builtin' ebuild /usr/portage/sys-kernel/spl/spl-0.6.4.2.ebuild clean configure
-(cd /var/tmp/portage/sys-kernel/spl-0.6.4.2/work/spl-spl-0.6.4.2/ && ./copy-builtin /usr/src/linux)
-env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild /usr/portage/sys-fs/zfs-kmod/zfs-kmod-0.6.4.2.ebuild clean configure
-(cd /var/tmp/portage/sys-fs/zfs-kmod-0.6.4.2/work/zfs-zfs-0.6.4.2/ && ./copy-builtin /usr/src/linux)
+env EXTRA_ECONF='--enable-linux-builtin' ebuild \
+    /usr/portage/sys-kernel/spl/spl-0.6.4.2.ebuild clean configure
+(cd /var/tmp/portage/sys-kernel/spl-0.6.4.2/work/spl-spl-0.6.4.2/ && \
+    ./copy-builtin /usr/src/linux)
+env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild \
+    /usr/portage/sys-fs/zfs-kmod/zfs-kmod-0.6.4.2.ebuild clean configure
+(cd /var/tmp/portage/sys-fs/zfs-kmod-0.6.4.2/work/zfs-zfs-0.6.4.2/ && \
+    ./copy-builtin /usr/src/linux)
 
+
+#=== initramfs ===============================================================
+# Originally I was using dracut because genkernel wasn't building /dev/disk
 # Make sure dracut uses the right kernel to get it's modules... motherfucker
 dracut --xz -k /lib64/modules/4.0.5-gentoo/ --kver 4.0.5-gentoo
 
-# Genkernel
-genkernel --no-clean --no-mountboot --keymap --zfs --compress-initramfs --compress-initramfs-type=xz initramfs
+# Genkernel - works great in a domU
+genkernel --no-clean --no-mountboot --keymap --zfs --compress-initramfs \
+    --compress-initramfs-type=xz initramfs
 
 # Regenerate grub.cfg
 cd /boot; grub2-mkconfig -o grub/grub.cfg
+# Note that this is only necessary until gentoo grub 
+# can appropriately read the zfs on-disk format again
 POOL=$(zfs list | awk '$5 ~ /^\/$/ { split( $1, name, "/" ); print name[1] }')
 echo $POOL
 sed -i "s/ZFS=\//ZFS=${POOL}\//g" grub/grub.cfg
