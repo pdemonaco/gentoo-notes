@@ -78,3 +78,7 @@ net.ipv4.conf.enp6s0.proxy_arp = 1
 echo "normal (memdisk)/grub.cfg" >> /tmp/grub-bootstrap.cfg
 # Generate the image
 grub2-mkimage -O x86_64-xen -c /tmp/grub-bootstrap.cfg -m /tmp/memdisk.tar -o grub-x86-64-xen.bin /usr/lib/grub/x86_64-xen/*.mod
+
+# Random MAC
+xxd -p -l 6 /dev/urandom | awk '{ and_num = strtonum("0xfeffffffffff"); or_num = strtonum("0x020000000000"); numstr = "0x"$1; num = strtonum(numstr); mod_num = and( or( num, or_num ), and_num ); printf "%0x", mod_num; }'
+
