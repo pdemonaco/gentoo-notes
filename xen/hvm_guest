@@ -1,0 +1,5 @@
+#!/bin/bash
+# Config file
+
+# Create our zvol block device
+zfs create -s -V 4G syspool/XEN/vdisk/pfsense
