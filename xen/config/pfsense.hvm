@@ -1,3 +1,4 @@
+device_model_version="qemu-xen-traditional"
 builder = "hvm"
 
 # Boot cdrom, then disk
@@ -5,7 +6,7 @@ boot="dc"
 
 # Disk Configuration
 disk = [
-        'format=file, vdev=xvcda, access=r, target=/mnt/xen/image/pfSense-LiveCD-2.2.4-RELEASE-amd64.iso',
+        'format=raw, vdev=xvdb, access=r, devtype=cdrom, target=/mnt/xen/image/pfSense-LiveCD-2.2.4-RELEASE-amd64.iso',
         'format=raw, vdev=xvda, access=w, target=/dev/zvol/syspool/XEN/vdisk/pfsense',
        ]
 
@@ -17,12 +18,12 @@ sdl=0
 vnc=1
 vnclisten="0.0.0.0"
 vncpasswd='pfsense'
-stdvga=0
+vga="stdvga"
 serial='pty'
-usbdevice='tablet'
+#usbdevice='tablet'
 
 # DomU Settings
 name = "pfsense"
-memory = 256
+memory = 512
 maxmem = 512
 vcpus = 2
