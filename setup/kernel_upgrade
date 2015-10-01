@@ -6,13 +6,15 @@
 emerge -1av sys-kernel/spl
 
 # Install ZFS
+SPL_VER="0.6.5.2"
+ZFS_VER="0.6.5.2"
 env EXTRA_ECONF='--enable-linux-builtin' ebuild \
-    /usr/portage/sys-kernel/spl/spl-0.6.5.ebuild clean configure
-(cd /var/tmp/portage/sys-kernel/spl-0.6.5/work/spl-spl-0.6.5/ && \
+    /usr/portage/sys-kernel/spl/spl-${SPL_VER}.ebuild clean configure
+(cd /var/tmp/portage/sys-kernel/spl-${SPL_VER}/work/spl-spl-${SPL_VER}/ && \
     ./copy-builtin /usr/src/linux)
 env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild \
-    /usr/portage/sys-fs/zfs-kmod/zfs-kmod-0.6.5.ebuild clean configure
-(cd /var/tmp/portage/sys-fs/zfs-kmod-0.6.5/work/zfs-zfs-0.6.5/ && \
+    /usr/portage/sys-fs/zfs-kmod/zfs-kmod-${ZFS_VER}.ebuild clean configure
+(cd /var/tmp/portage/sys-fs/zfs-kmod-${ZFS_VER}/work/zfs-zfs-${ZFS_VER}/ && \
     ./copy-builtin /usr/src/linux)
 
 

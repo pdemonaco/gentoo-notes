@@ -1,7 +1,9 @@
 #!/bin/bash
 # Config file
 
+# Ensure CONFIG_TUN is enabled
+
 # Create our zvol block device
 zfs create -s -V 4G syspool/XEN/vdisk/pfsense
 
-# Note that the 'kernel' is /usr/libexec/xen/boot/hvmloader
+
