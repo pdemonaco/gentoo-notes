@@ -35,3 +35,4 @@ cd /boot; grub2-mkconfig -o grub/grub.cfg
 POOL=$(zfs list | awk '$5 ~ /^\/$/ { split( $1, name, "/" ); print name[1] }')
 echo $POOL
 sed -i "s/ZFS=\//ZFS=${POOL}\//g" grub/grub.cfg
+
