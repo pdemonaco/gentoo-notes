@@ -1,0 +1,30 @@
+device_model_version="qemu-xen"
+builder = "hvm"
+
+# Boot cdrom, then disk
+boot="c"
+
+# Disk Configuration
+disk = [
+        'format=raw, vdev=xvdb, access=r, devtype=cdrom, target=/mnt/xen/image/sysresccd-4.5.2_zfs_0.6.4.iso',
+       ]
+
+# Network configuration
+vif = [ 
+        'mac=86:fd:5a:89:de:2c, bridge=xenbr1', 
+      ]
+
+# Video
+sdl=0
+vnc=1
+vnclisten="0.0.0.0"
+vncpasswd='sysrescue'
+vga="stdvga"
+serial='pty'
+#usbdevice='tablet'
+
+# DomU Settings
+name = "sysrescue"
+memory = 512
+maxmem = 512
+vcpus = 2

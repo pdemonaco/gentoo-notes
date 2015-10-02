@@ -1,0 +1,15 @@
+kernel = "/mnt/xen/boot/grub-x86-64-xen.bin"
+
+# Path to disk
+disk = [
+        'format=raw, vdev=xvda, access=w, target=/dev/zvol/syspool/XEN/vdisk/gentoo-domu',
+       ]
+
+# Network configuration
+vif = ['mac=26:e5:3f:b8:60:d1,bridge=xenbr0']
+
+# DomU settings
+name = "gentoo-domu"
+memory = 2048
+vcpus = 8
+maxvcpus = 8

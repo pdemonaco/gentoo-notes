@@ -1,4 +1,4 @@
-device_model_version="qemu-xen-traditional"
+device_model_version="qemu-xen"
 builder = "hvm"
 
 # Boot cdrom, then disk
@@ -11,7 +11,10 @@ disk = [
        ]
 
 # Network configuration
-vif = [ 'mac=3a:d3:0c:bb:0c:c6,bridge=xenbr0' ]
+vif = [ 
+        'mac=3a:d3:0c:bb:0c:c6, bridge=xenbr0', 
+        'mac=4e:e1:73:be:86:62, bridge=xenbr1', 
+      ]
 
 # Video
 sdl=0
