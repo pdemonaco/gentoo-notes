@@ -1,31 +1,49 @@
 #!/bin/bash
 
-## Setup partitions on SSDs
-mklabel gpt
-
-# ZIL partition 0
-mkpart primary 1 513
-name 1 log0
-
-# Cache partition 0
-mkpart primary 513 -1
-name 2 cache0
-
-# ZIL partition 1
-mkpart primary 1 513
-name 1 log1
-
-# Cache partition 1
-mkpart primary 513 -1
-name 2 cache1
+# Disk WWN list
+DISKS="0x5000cca7dcd6f399 0x5000cca7dcd6f2c0 0x50024e9204a90b4a \
+    0x5000cca7dcd7123f 0x50024e9204a90d59 0x50024e9204a90d45"
+ID=0
+for DISK in $DISKS
+do
+    printf "parted -a optimal /dev/disk/by-id/wwn-${DISK}\n"
+    printf "mklabel gpt\nmkpart primary 1 -1\nname 1 pool${ID}\n\n"
+    ID=$(($ID + 1))
+done
 
 # Properties for the pool
+# ashift=12                     - Support 4KiB sectors
+# autoexpand=on                 - Allow automatic disk expansion
+# feature@lz4_compress=enabled  - Enable support for lz4 compression
+for DISK in $DISKS
+do
+    echo "/dev/disk/by-id/wwn-${DISK}-part1"
+done
 
-ashift=12 			# Support 4KiB sectors
-autoexpand=on			# Allow automatic disk expansion
-feature@lz4_compress=enabled	# Enable support for lz4 compression
+zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled \
+    fpool raidz1 \
+    /dev/disk/by-id/wwn-0x5000cca7dcd6f399-part1 \
+    /dev/disk/by-id/wwn-0x5000cca7dcd6f2c0-part1 \
+    /dev/disk/by-id/wwn-0x50024e9204a90b4a-part1 \
+    /dev/disk/by-id/wwn-0x5000cca7dcd7123f-part1 \
+    /dev/disk/by-id/wwn-0x50024e9204a90d59-part1 \
+    /dev/disk/by-id/wwn-0x50024e9204a90d45-part1
 
-zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled dpool raidz1 /dev/disk/by-id/ata-WDC_WD1001FALS-00E3A0_WD-WCATR0086402-part1 /dev/disk/by-id/scsi-3600050e0a5e0d600b66c0000b77b0000-part1 /dev/disk/by-id/scsi-3600050e0a5e0d600f8ec0000a7bb0000-part1 /dev/disk/by-id/scsi-3600050e0a5e0db00739a0000d6930000-part1 /dev/disk/by-id/scsi-3600050e0a5e0db00a318000042e30000-part1 log mirror /dev/disk/by-id/wwn-0x5001b44bd5ba5a9d-part1 /dev/disk/by-id/wwn-0x5001b44bd5ba5baf-part1 cache /dev/disk/by-id/wwn-0x5001b44bd5ba5a9d-part2 /dev/disk/by-id/wwn-0x5001b44bd5ba5baf-part2
+# Clone
+zfs snap -r dpool@migrate
+zfs send -R dpool@migrate | zfs recv -F fpool
+
+# Origininal 
+zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled \
+    dpool raidz1 /dev/disk/by-id/ata-WDC_WD1001FALS-00E3A0_WD-WCATR0086402-part1 \
+    /dev/disk/by-id/scsi-3600050e0a5e0d600b66c0000b77b0000-part1 \
+    /dev/disk/by-id/scsi-3600050e0a5e0d600f8ec0000a7bb0000-part1 \
+    /dev/disk/by-id/scsi-3600050e0a5e0db00739a0000d6930000-part1 \
+    /dev/disk/by-id/scsi-3600050e0a5e0db00a318000042e30000-part1 \
+    log mirror /dev/disk/by-id/wwn-0x5001b44bd5ba5a9d-part1 \
+    /dev/disk/by-id/wwn-0x5001b44bd5ba5baf-part1 \
+    cache /dev/disk/by-id/wwn-0x5001b44bd5ba5a9d-part2 \
+    /dev/disk/by-id/wwn-0x5001b44bd5ba5baf-part2
 
 # Base file system
 zfs create -o mountpoint=none dpool/DATA
