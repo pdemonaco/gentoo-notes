@@ -1,0 +1,42 @@
+#!/bin/bash
+
+## Setup partitions on SSDs
+mklabel gpt
+
+# ZIL partition 0
+mkpart primary 1 513
+name 1 log0
+
+# Cache partition 0
+mkpart primary 513 -1
+name 2 cache0
+
+# ZIL partition 1
+mkpart primary 1 513
+name 1 log1
+
+# Cache partition 1
+mkpart primary 513 -1
+name 2 cache1
+
+# Properties for the pool
+
+ashift=12 			# Support 4KiB sectors
+autoexpand=on			# Allow automatic disk expansion
+feature@lz4_compress=enabled	# Enable support for lz4 compression
+
+zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled dpool raidz1 /dev/disk/by-id/ata-WDC_WD1001FALS-00E3A0_WD-WCATR0086402-part1 /dev/disk/by-id/scsi-3600050e0a5e0d600b66c0000b77b0000-part1 /dev/disk/by-id/scsi-3600050e0a5e0d600f8ec0000a7bb0000-part1 /dev/disk/by-id/scsi-3600050e0a5e0db00739a0000d6930000-part1 /dev/disk/by-id/scsi-3600050e0a5e0db00a318000042e30000-part1 log mirror /dev/disk/by-id/wwn-0x5001b44bd5ba5a9d-part1 /dev/disk/by-id/wwn-0x5001b44bd5ba5baf-part1 cache /dev/disk/by-id/wwn-0x5001b44bd5ba5a9d-part2 /dev/disk/by-id/wwn-0x5001b44bd5ba5baf-part2
+
+# Base file system
+zfs create -o mountpoint=none dpool/DATA
+
+# create file systems
+zfs create -o mountpoint=/dpool/software -o compression=lz4 dpool/DATA/software
+zfs create -o mountpoint=/dpool/media -o compression=lz4 dpool/DATA/media
+zfs create -o mountpoint=/dpool/media/encoded -o compression=lz4 dpool/DATA/media/encoded
+zfs create -o mountpoint=/dpool/media/transcode -o compression=lz4 dpool/DATA/media/transcode
+zfs create -o mountpoint=none -o compression=lz4 dpool/HOME
+zfs create -o mountpoint=/home/pdemonaco/documents -o compression=lz4 dpool/HOME/documents
+zfs create -o mountpoint=none -o compression=lz4 dpool/DEV
+zfs create -o mountpoint=/var/git -o compression=lz4 dpool/DEV/git
+
