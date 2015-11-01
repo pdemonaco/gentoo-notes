@@ -286,27 +286,50 @@ vim /etc/conf.d/keymaps
 "/dev/sys-pl/swap        none            swap            sw              0 0"
 
 ## System logger
-# none yet, but needed
+# metalog for the moment - we'll need to do remote logging eventually
+emerge -avt app-admin/metalog
+rc-update add metalog default
 
 ## Enable cron daemon
-emerge -av sys-process/fcron
+emerge -avt sys-process/fcron
 rc-update add fcron default
 crontab /etc/crontab
 
-## Enable SSH
+## Enable SSH in default runlevel
 rc-update add sshd default
 
-## Things to emerge
-emerge -av app-admin/metalog
-emerge -av sys-process/fcron
-emerge -av net-misc/dhcpcd
-emerge -av app-misc/screen
-emerge -av app-admin/sudo
-emerge -av app-portage/pfl
-emerge -av net-analyzer/iptraf-ng
-emerge -av net-analyzer/ettercap
-emerge -av net-dns/bind-tools
-emerge -av net-firewall/iptables
-emerge -av net-analyzer/nmap
-emerge -av net-analyzer/traceroute
-emerge -av net-misc/netkit-telnetd
+#----- Install Stuff --------------------------------------
+## system monitor
+SYS_MON="sys-process/htop \
+    sys-process/lsof \
+    sys-process/nmon \
+    sys-apps/pciutils \
+    sys-apps/usbutils"
+
+## portage tools
+PORTAGE="app-portage/gentoolkit \
+    app-portage/layman \
+    app-portage/pfl"
+
+## network tools
+NET_TOOLS="net-analyzer/nmap \
+    net-analyzer/traceroute \
+    net-dns/bind-tools \
+    net-misc/netifrc \
+    net-analyzer/iptraf-ng \
+    net-analyzer/ettercap \
+    net-misc/dhcpcd \
+    net-firewall/iptables \
+    net-misc/netkit-telnetd"
+
+## Block devices
+BLOCK="sys-block/parted"
+
+## General purpose
+GENERAL="app-misc/screen \
+    app-editors/vim \
+    app-text/tree \
+    app-shells/zsh"
+
+emerge -avt ${SYS_MON} ${PORTAGE} ${NET_TOOLS} ${BLOCK} ${GENERAL}
+
