@@ -10,7 +10,7 @@ SPL_VER="0.6.5.3"
 ZFS_VER="0.6.5.3"
 env EXTRA_ECONF='--enable-linux-builtin' ebuild \
     /usr/portage/sys-kernel/spl/spl-${SPL_VER}.ebuild clean configure
-(cd /var/tmp/portage/sys-kernel/spl-${SPL_VER}/work/spl-spl-${SPL_VER}/ && \
+(cd /var/tmp/portage/sys-kernel/spl-${SPL_VER}/work/spl-${SPL_VER}/ && \
     ./copy-builtin /usr/src/linux)
 env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild \
     /usr/portage/sys-fs/zfs-kmod/zfs-kmod-${ZFS_VER}.ebuild clean configure

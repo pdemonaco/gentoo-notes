@@ -122,7 +122,7 @@ cpuinfo2cpuflags-x86
 # Copy in resolv.conf
 cp -L /etc/resolv.conf /mnt/gentoo/etc/
 
-##### chroot #####
+#----- chroot ---------------------------------------------
 ## Mount filesystems
 mount -t proc proc /mnt/gentoo/proc
 mount --rbind /dev /mnt/gentoo/dev
@@ -135,7 +135,9 @@ mount --rbind /sys /mnt/gentoo/sys
 chroot /mnt/gentoo /bin/bash
 env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
 
+#----- basic-setup ----------------------------------------
 ## Configure Portage
+emerge-webrsync
 emerge --sync
 
 ## Configure your timezone
@@ -154,11 +156,13 @@ emerge -av vim
 eselect editor list
 eselect editor set $(eselect editor list | grep vi | sed -e 's/\[//' -e 's/\]//' | awk '{ print $1 }')
 
+#----- Kernel config --------------------------------------
 ## Install sources & genkernel
 emerge -av sys-kernel/genkernel sys-kernel/gentoo-sources
 
 # Build initial kernel (required for checks in sys-kernel/spl and sys-fs/zfs)
-genkernel kernel --no-clean --no-mountboot
+cd /usr/src/linux
+make -j25
 
 3w-9xxx
 ahci
@@ -173,20 +177,26 @@ sky2
 uhci_hcd
 xhci_hcd
 
-## Setup ZFS
+#----- ZFS config -----------------------------------------
 # Ensure the appropriate exceptions are added to package.accept_keywords
-echo "sys-kernel/spl ~amd64" >> /etc/portage/package.accept_keywords
-echo "sys-fs/zfs-kmod ~amd64" >> /etc/portage/package.accept_keywords
-echo "sys-fs/zfs ~amd64" >> /etc/portage/package.accept_keywords
+echo "sys-kernel/spl ~amd64" >> /etc/portage/package.accept_keywords/zfs
+echo "sys-fs/zfs-kmod ~amd64" >> /etc/portage/package.accept_keywords/zfs
+echo "sys-fs/zfs ~amd64" >> /etc/portage/package.accept_keywords/zfs
 
 # Emerge zfs
 emerge -av sys-fs/zfs
 
 # Create the builtin components
-env EXTRA_ECONF='--enable-linux-builtin' ebuild /usr/portage/sys-kernel/spl/spl-0.6.4.ebuild clean configure
-(cd /var/tmp/portage/sys-kernel/spl-0.6.4/work/spl-spl-0.6.4/ && ./copy-builtin /usr/src/linux)
-env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild /usr/portage/sys-fs/zfs-kmod/zfs-kmod-0.6.4.ebuild clean configure
-(cd /var/tmp/portage/sys-fs/zfs-kmod-0.6.4/work/zfs-zfs-0.6.4/ && ./copy-builtin /usr/src/linux)
+SPL_VER="0.6.5.3"
+ZFS_VER="0.6.5.3"
+env EXTRA_ECONF='--enable-linux-builtin' ebuild \
+    /usr/portage/sys-kernel/spl/spl-${SPL_VER}.ebuild clean configure
+(cd /var/tmp/portage/sys-kernel/spl-${SPL_VER}/work/spl-${SPL_VER}/ && \
+    ./copy-builtin /usr/src/linux)
+env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild \
+    /usr/portage/sys-fs/zfs-kmod/zfs-kmod-${ZFS_VER}.ebuild clean configure
+(cd /var/tmp/portage/sys-fs/zfs-kmod-${ZFS_VER}/work/zfs-${ZFS_VER}/ && \
+    ./copy-builtin /usr/src/linux)
 
 # Enable builtin zfs/spl in kernel
 <*> Solaris Porting Layer (SPL)
@@ -205,14 +215,15 @@ echo "sys-fs/zfs -kernel-builtin" >> /etc/portage/profile/package.use.mask
 echo "sys-fs/zfs kernel-builtin" >> /etc/portage/package.use/zfs
 emerge -1av sys-fs/zfs
 
-##### Initramfs #####
-# Dracut 
-echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords
-emerge -av sys-kernel/dracut
-# Copy in /etc/dracut.conf
-dracut --xz -k /lib64/modules/3.18.12-gentoo/ --kver 3.18.12-gentoo
+#----- Initramfs ------------------------------------------
+# Genkernel
+emerge -av sys-kernel/genkernel
 
-##### Bootloader #####
+# After copying in config - perform
+genkernel --no-clean --no-mountboot --keymap --zfs --compress-initramfs \
+    --compress-initramfs-type=xz initramfs
+
+#----- Bootloader -----------------------------------------
 ## Ensure grub is built with zfs support
 echo "sys-boot/grub:2 libzfs" >> /etc/portage/package.use/grub
 
@@ -228,18 +239,38 @@ GRUB_CMDLINE_LINUX="zfs_force=1 vconsole.keymap=dvorak"
 ## Make sure mtab exists
 touch /etc/mtab
 
+## If you have a separate boot pool imported from within chroot
+zpool import boot-pl
+
 ## Mount the boot volume from within the chroot environment
 zfs mount syspool/BOOT/boot 
 # Note that this will probably put the file in the wrong
 # directory due to the root redirection
 
 ## Install
-grub2-install --target="i386-pc"
+grub2-install --target="i386-pc" "${DISK1}"
+grub2-install --target="i386-pc" "${DISK2}"
 
 ## Build the grub config file
 grub2-mkconfig -o /boot/grub/grub.cfg
+# Note that this is only necessary until gentoo grub 
+# can appropriately read the zfs on-disk format again
+POOL=$(zfs list | awk '$5 ~ /^\/$/ { split( $1, name, "/" ); print name[1] }')
+echo $POOL
+sed -i "s/ZFS=\//ZFS=${POOL}\//g" grub/grub.cfg
+# Might not work in a chroot environment - no "/" mount point
 
-##### Other Stuff #####
+#----- Networking -----------------------------------------
+# Configure /etc/conf.d/net
+cd /etc/init.d
+ln -s net.lo net.enp2s0f0
+ln -s net.lo net.xenbr0
+
+# Add to 
+rc-update add net.enp2s0f0 default
+rc-update add net.xenbr0 default
+
+#----- Other Stuff ----------------------------------------
 ## Fix the default editor
 eselect editor list
 
@@ -248,20 +279,11 @@ passwd
 
 ## Correct keyboard layout
 vim /etc/conf.d/keymaps
+# No need on this system (iLO 2)
 
 ## fstab - correct
-
-##### Basic Wired Networking #####
-# Setup the device definition in rc's term
-cd /etc/init.d
-ln -s net.lo net.enp6s0
-
-# Update /etc/conf.d/net
-
-# Start the new service
-/etc/init.d/net.enp6s0 start
-# Add it to the default run-level
-rc-update add net.enp6s0 default
+# comment out boot & root
+"/dev/sys-pl/swap        none            swap            sw              0 0"
 
 ## System logger
 # none yet, but needed
