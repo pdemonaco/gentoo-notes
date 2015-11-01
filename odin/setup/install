@@ -116,13 +116,8 @@ grep --color $(openssl dgst -r -md5 portage-latest.tar.xz | awk '{print $1}') po
 # Mainly setting up make.conf
 
 # Determine instruction set
-for FLAG in $(grep flags /proc/cpuinfo | awk '{FS = ":"} {print $2}' | tail -n 1); do grep -w "^"${FLAG} /usr/portage/profiles/use.desc; done
-
-# New method
 emerge -1v app-portage/cpuinfo2cpuflags
 cpuinfo2cpuflags-x86
-
-# copied in my settings from forseti
 
 # Copy in resolv.conf
 cp -L /etc/resolv.conf /mnt/gentoo/etc/
