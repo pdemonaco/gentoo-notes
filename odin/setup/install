@@ -275,7 +275,8 @@ rc-update add net.xenbr0 default
 eselect editor list
 
 ## Set root's password
-passwd
+passwdsed -i "s/ZFS=\//ZFS=${POOL}\//g" grub/grub.cfg
+
 
 ## Correct keyboard layout
 vim /etc/conf.d/keymaps
@@ -320,7 +321,8 @@ NET_TOOLS="net-analyzer/nmap \
     net-analyzer/ettercap \
     net-misc/dhcpcd \
     net-firewall/iptables \
-    net-misc/netkit-telnetd"
+    net-misc/netkit-telnetd \
+    net-misc/bridge-utils"
 
 ## Block devices
 BLOCK="sys-block/parted"
