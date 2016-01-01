@@ -8,6 +8,7 @@
 #===== Disk ===================================================================
 DISK1="/dev/disk/by-id/usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F047-0:0"
 DISK2="/dev/disk/by-id/usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F1C0-0:0"
+DISK3="/dev/disk/by-id/wwn-0x5001b44e914ec6c9"
 
 # Three partitions per drive
 parted -a optimal $DISK1
@@ -29,8 +30,8 @@ mkpart primary 3 259
 name 2 boot-pl-0
 
 ## system pool
-mkpart primary 259 -1
-name 3 sys-pl-0
+mkpart primary 259 16643
+name 3 sys-pl-2
 
 #----- File Systems ---------------------------------------
 # Make the file systems
@@ -79,6 +80,11 @@ zfs create -o mountpoint=/usr/portage/packages sys-pl/GENTOO/packages
 
 # ccache directory
 zfs create -o mountpoint=/var/tmp/ccache -o compression=lz4 sys-pl/GENTOO/ccache
+
+#----- Installation Files ---------------------------------
+# Moving to the SSD - shitters
+zpool attach sys-pl "${DISK1}-part3" "${DISK3}-part3"
+zpool attach boot-pl "${DISK1}-part2" "${DISK3}-part2"
 
 #----- Installation Files ---------------------------------
 # Time fix

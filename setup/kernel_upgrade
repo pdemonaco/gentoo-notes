@@ -6,22 +6,24 @@
 emerge -1av sys-kernel/spl
 
 # Install ZFS
-SPL_VER="0.6.5.3"
-ZFS_VER="0.6.5.3"
+SPL_VER_BASE="0.6.5.3"
+ZFS_VER_BASE="0.6.5.3"
+SPL_REL="${SPL_VER_BASE}"
+ZFS_REL="${ZFS_VER_BASE}"
 env EXTRA_ECONF='--enable-linux-builtin' ebuild \
-    /usr/portage/sys-kernel/spl/spl-${SPL_VER}.ebuild clean configure
-(cd /var/tmp/portage/sys-kernel/spl-${SPL_VER}/work/spl-${SPL_VER}/ && \
+    /usr/portage/sys-kernel/spl/spl-${SPL_REL}.ebuild clean configure
+(cd /var/tmp/portage/sys-kernel/spl-${SPL_REL}/work/spl-${SPL_VER_BASE}/ && \
     ./copy-builtin /usr/src/linux)
 env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild \
-    /usr/portage/sys-fs/zfs-kmod/zfs-kmod-${ZFS_VER}.ebuild clean configure
-(cd /var/tmp/portage/sys-fs/zfs-kmod-${ZFS_VER}/work/zfs-${ZFS_VER}/ && \
+    /usr/portage/sys-fs/zfs-kmod/zfs-kmod-${ZFS_REL}.ebuild clean configure
+(cd /var/tmp/portage/sys-fs/zfs-kmod-${ZFS_REL}/work/zfs-${ZFS_VER_BASE}/ && \
     ./copy-builtin /usr/src/linux)
 
 
 #=== initramfs ===============================================================
 # Originally I was using dracut because genkernel wasn't building /dev/disk
 # Make sure dracut uses the right kernel to get it's modules... motherfucker
-dracut --xz -k /lib64/modules/4.0.9-gentoo/ --kver 4.0.9-gentoo
+dracut --xz -k /lib64/modules/4.1.12-gentoo/ --kver 4.1.12-gentoo
 # Might have to edit /usr/lib/dracut/modules.d/90zfs/module-setup.sh
 
 # Genkernel - works great in a domU
