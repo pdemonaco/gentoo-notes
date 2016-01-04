@@ -6,9 +6,9 @@
 # zfs-0.6.4 builtin. 
 
 #===== Disk ===================================================================
-DISK1="/dev/disk/by-id/usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F047-0:0"
-DISK2="/dev/disk/by-id/usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F1C0-0:0"
-DISK3="/dev/disk/by-id/wwn-0x5001b44e914ec6c9"
+DISK1="/dev/disk/by-id/wwn-0x5001b44e914ec6c9"
+DISK2="/dev/disk/by-id/wwn-0x5001b44bd5ba5a9d"
+DISK3="usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F047-0:0"
 
 # Three partitions per drive
 parted -a optimal $DISK1
@@ -31,7 +31,7 @@ name 2 boot-pl-0
 
 ## system pool
 mkpart primary 259 16643
-name 3 sys-pl-2
+name 3 sys-pl-0
 
 #----- File Systems ---------------------------------------
 # Make the file systems
@@ -52,6 +52,7 @@ zpool set bootfs=boot-pl/BOOT/boot boot-pl
 #--- Syspool (Partition 3)
 # This is the install pool
 zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled \
+    -o cachefile=/tmp/zpool.cache \
     -O normalization=formD -m none -R /mnt/gentoo sys-pl \
     mirror ${DISK1}-part3 ${DISK2}-part3
 
@@ -85,6 +86,7 @@ zfs create -o mountpoint=/var/tmp/ccache -o compression=lz4 sys-pl/GENTOO/ccache
 # Moving to the SSD - shitters
 zpool attach sys-pl "${DISK1}-part3" "${DISK3}-part3"
 zpool attach boot-pl "${DISK1}-part2" "${DISK3}-part2"
+zpool attach boot-pl "${DISK1}-part2" "${DISK2}-part2"
 
 #----- Installation Files ---------------------------------
 # Time fix
@@ -127,6 +129,9 @@ cpuinfo2cpuflags-x86
 
 # Copy in resolv.conf
 cp -L /etc/resolv.conf /mnt/gentoo/etc/
+
+# Copy over the zfs cache file
+cp /tmp/zpool.cache /mnt/gentoo/etc/zfs/zpool.cache
 
 #----- chroot ---------------------------------------------
 ## Mount filesystems
@@ -249,13 +254,14 @@ touch /etc/mtab
 zpool import boot-pl
 
 ## Mount the boot volume from within the chroot environment
-zfs mount syspool/BOOT/boot 
+zfs mount boot-pl/BOOT/boot 
 # Note that this will probably put the file in the wrong
 # directory due to the root redirection
 
 ## Install
-grub2-install --target="i386-pc" "${DISK1}"
-grub2-install --target="i386-pc" "${DISK2}"
+grub2-install --target="i386-pc" "/dev/disk/by-id/${DISK1}"
+grub2-install --target="i386-pc" "/dev/disk/by-id/${DISK2}"
+grub2-install --target="i386-pc" "/dev/disk/by-id/${DISK3}"
 
 ## Build the grub config file
 grub2-mkconfig -o /boot/grub/grub.cfg
@@ -281,8 +287,7 @@ rc-update add net.xenbr0 default
 eselect editor list
 
 ## Set root's password
-passwdsed -i "s/ZFS=\//ZFS=${POOL}\//g" grub/grub.cfg
-
+passwd
 
 ## Correct keyboard layout
 vim /etc/conf.d/keymaps
@@ -331,7 +336,8 @@ NET_TOOLS="net-analyzer/nmap \
     net-misc/bridge-utils"
 
 ## Block devices
-BLOCK="sys-block/parted"
+BLOCK="sys-block/parted
+       sys-block/sas2ircu"
 
 ## General purpose
 GENERAL="app-misc/screen \

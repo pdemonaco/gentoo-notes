@@ -57,4 +57,5 @@ zfs create -o mountpoint=none -o compression=lz4 dpool/HOME
 zfs create -o mountpoint=/home/pdemonaco/documents -o compression=lz4 dpool/HOME/documents
 zfs create -o mountpoint=none -o compression=lz4 dpool/DEV
 zfs create -o mountpoint=/var/git -o compression=lz4 dpool/DEV/git
+zfs create -o mountpoint=/home/victoria -o compression=lz4 dpool/HOME/victoria
 
