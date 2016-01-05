@@ -316,7 +316,9 @@ SYS_MON="sys-process/htop \
     sys-process/lsof \
     sys-process/nmon \
     sys-apps/pciutils \
-    sys-apps/usbutils"
+    sys-apps/usbutils \
+    sys-apps/lshw \
+    sys-apps/smartmontools"
 
 ## portage tools
 PORTAGE="app-portage/gentoolkit \
