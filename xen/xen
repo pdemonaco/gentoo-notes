@@ -3,9 +3,9 @@
 #### Emerge Xen & Tools ==========================================
 #
 # Unmask the current version
-echo ">=app-emulation/xen-4.5.0-r5 ~amd64" >> /etc/portage/package.accept_keywords
-echo ">=app-emulation/xen-tools-4.5.0-r3 ~amd64" >> /etc/portage/package.accept_keywords
-echo ">=app-emulation/xen-pvgrub-4.5.0-r1 ~amd64" >> /etc/portage/package.accept_keywords
+echo ">=app-emulation/xen-4.5.0-r5 ~amd64" >> /etc/portage/package.accept_keywords/xen
+echo ">=app-emulation/xen-tools-4.5.0-r3 ~amd64" >> /etc/portage/package.accept_keywords/xen
+echo ">=app-emulation/xen-pvgrub-4.5.0-r1 ~amd64" >> /etc/portage/package.accept_keywords/xen
 
 # Add some use flags
 echo "app-emulation/xen efi" >> /etc/portage/package.use/xen
@@ -17,8 +17,10 @@ echo "app-emulation/xen-tools qemu" >> /etc/portage/package.use/xen
 echo "app-emulation/xen-tools screen" >> /etc/portage/package.use/xen
 
 # Add dependent use flags
-echo "sys-devel/binutils multitarget" >> /etc/portage/package.use/binutils
-echo "dev-lang/python sqlite" >> /etc/portage/package.use/python
+echo "sys-devel/binutils multitarget" >> /etc/portage/package.use/xen
+echo "dev-lang/python sqlite" >> /etc/portage/package.use/xen
+
+# Mount /boot
 
 # Emerge our Xen Tools
 emerge -av xen xen-tools xen-pvgrub gentoo-sources
@@ -36,7 +38,8 @@ cp /usr/src/linux/.config /etc/kernels/kernel-config-3.18.11-gentoo-04
 #   - default menu entry
 #   - xen dom0 memory settings
 #   - xen set pvh mode for dom0
-# /etc/sbin/xl
+# /etc/xen/xl.conf
+#   - set autoballoon to "auto"
 
 # Setup runlevel scripts
 # based on the following guide
