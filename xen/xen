@@ -67,6 +67,9 @@ zfs create -o mountpoint=/mnt/xen/boot syspool/XEN/boot
 zfs create -o mountpoint=/mnt/xen/image syspool/XEN/image
 zfs create -o mountpoint=none syspool/XEN/vdisk
 
+# Set the default boot option to Xen after a successful start
+grub2-set-default 'Gentoo GNU/Linux, with Xen hypervisor'
+
 # Configure bridged network interface
 # Update /etc/conf.d/net
 cd /etc/init.d/; ln -s net.lo net.xenbr0; cd -

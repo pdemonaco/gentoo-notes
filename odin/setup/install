@@ -6,9 +6,9 @@
 # zfs-0.6.4 builtin. 
 
 #===== Disk ===================================================================
-DISK1="/dev/disk/by-id/wwn-0x5001b44e914ec6c9"
-DISK2="/dev/disk/by-id/wwn-0x5001b44bd5ba5a9d"
-DISK3="usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F047-0:0"
+DISK1="/dev/disk/by-id/ata-SanDisk_SDSSDXP240G_140830400157"
+DISK2="/dev/disk/by-id/ata-SanDisk_SDSSDXPS240G_152567401161"
+DISK3="/dev/disk/by-id/usb-TOSHIBA_TransMemory_FFFFFFFFFFFFEEA16000F047-0:0"
 
 # Three partitions per drive
 parted -a optimal $DISK1
@@ -259,9 +259,9 @@ zfs mount boot-pl/BOOT/boot
 # directory due to the root redirection
 
 ## Install
-grub2-install --target="i386-pc" "/dev/disk/by-id/${DISK1}"
-grub2-install --target="i386-pc" "/dev/disk/by-id/${DISK2}"
-grub2-install --target="i386-pc" "/dev/disk/by-id/${DISK3}"
+grub2-install --target="i386-pc" "${DISK1}"
+grub2-install --target="i386-pc" "${DISK2}"
+grub2-install --target="i386-pc" "${DISK3}"
 
 ## Build the grub config file
 grub2-mkconfig -o /boot/grub/grub.cfg
