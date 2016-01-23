@@ -4,6 +4,6 @@
 # Ensure CONFIG_TUN is enabled
 
 # Create our zvol block device
-zfs create -s -V 4G syspool/XEN/vdisk/pfsense
+zfs create -s -V 4G xen-pl/XEN/vdisk/pfsense
 
 
