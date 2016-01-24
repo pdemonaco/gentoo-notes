@@ -1,0 +1,53 @@
+#!/bin/bash
+sas2ircu 0 DISPLAY| grep "Serial No" | awk \
+    'BEGIN { n = 0 } $4 ~ /^J/ { printf "DISK%i=\"/dev/disk/by-id/ata-HGST_HTS721010A9E630_%s\"\n", n, $4; n = n + 1 }'
+
+## Data devices
+DISK=0
+until [ $DISK -gt 5 ]; do
+
+    echo "parted -a optimal ${DISK1}"
+    echo "unit mib"
+    echo "mklabel gpt"
+    echo "mkpart primary 1 -1"
+    
+    if [ $DISK -lt 3 ]; then
+        VDEV=$DISK
+        DISK_ID=0
+    else
+        let VDEV=$DISK-3
+        DISK_ID=1
+    fi
+
+    printf "name 1 xl-pool-d${VDEV}\n\n"
+
+    let DISK+=1
+done
+
+## Create the L2ARC and SLOG Devices
+unit mib
+mkpart primary 16643 17155
+name 4 xen-pl-slog
+
+mkpart primary 17155 -1
+name 5 xen-pl-l2arc
+
+CDISK0="/dev/disk/by-id/ata-SanDisk_SDSSDXP240G_140830400157"
+CDISK1="/dev/disk/by-id/ata-SanDisk_SDSSDXPS240G_152567401161"
+
+zpool create -f -o ashift=12 -o autoexpand=on \
+    -o feature@lz4_compress=enabled \
+    -O normalization=formD \
+    xen-pl \
+    mirror ${DISK0}-part1 ${DISK3}-part1 \
+    mirror ${DISK1}-part1 ${DISK4}-part1 \
+    mirror ${DISK2}-part1 ${DISK5}-part1 \
+    log mirror ${CDISK0}-part4 ${CDISK1}-part4 \
+    cache ${CDISK0}-part5 ${CDISK1}-part5
+
+zfs create -o mountpoint=none xen-pl/XEN
+zfs create -o compression=lz4 -o mountpoint=/etc/xen/config xen-pl/XEN/config
+zfs create -o compression=lz4 -o mountpoint=/xen/boot xen-pl/XEN/boot
+zfs create -o mountpoint=/xen/image xen-pl/XEN/image
+zfs create -o mountpoint=none xen-pl/XEN/vdisk
+
