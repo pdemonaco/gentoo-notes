@@ -1,0 +1,135 @@
+#!/bin/bash
+
+ZVOL="xen-pl/XEN/vdisk/gentoo-ext4"
+
+#----- Disk Preparation -----------------------------------
+# Create zvol for the guest
+zfs create -V 16g "${ZVOL}"
+
+BLOCK_DEVICE="/dev/zvol/${ZVOL}"
+
+# Partition the file system and format
+parted -a optimal /dev/zvol/xen-pl/XEN/vdisk/gentoo-ext4
+ unit mib
+ mklabel gpt
+ mkpart primary 1 129
+ name 1 boot
+
+ mkpart primary 129 1153
+ name 2 swap
+
+ mkpart primary 1153 -1
+ name 3 root
+
+# Format the filesystems
+mkfs.ext2 -T small "${BLOCK_DEVICE}-part1"
+mkswap "${BLOCK_DEVICE}-part2"
+mkfs.ext4 "${BLOCK_DEVICE}-part3"
+
+# Mount the root file system
+mount /dev/xvdb3 /mnt/gentoo
+
+# Turn on the swap
+swapon /dev/xvdb2
+
+# Create /boot and mount it
+mkdir /mnt/gentoo/boot
+mount /dev/xvdb1 /mnt/gentoo/boot
+
+
+#----- Collect Sources ------------------------------------
+## Go to the mountpoint
+cd /mnt/gentoo
+
+## Download Sources
+wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2
+wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2.DIGESTS
+
+## Corruption check
+# Now that we have the sources, check them out
+grep --color $(openssl dgst -r -sha512 stage3-amd64-*.tar.bz2 | awk '{print $1}') stage3-amd64-*.tar.bz2.DIGESTS
+# Should see a line that matches
+
+## Extract the tarball
+tar xvjpf stage3-*.tar.bz2 --xattrs
+
+#----- etc git tracking -----------------------------------
+# Setup git tracking for etc prior to doing anything
+
+#----- Portage Prep-prechroot -----------------------------
+# Mix in some steps from chapters 5-6 of the gentoo handbook
+#-- make.conf
+
+# Determine instruction set for CPU_FLAGS_X86
+emerge -1v app-portage/cpuinfo2cpuflags
+cpuinfo2cpuflags-x86
+
+# Collect and store a good mirrorlist
+mirrorselect -D -s4 -b10 -o /tmp/mirrors
+
+#-- repo configuration
+# Note that we can't switch to git-based until git has been installed in the domu
+mkdir etc/portage/repos.conf
+cp usr/share/portage/config/repos.conf etc/portage/repos.conf/gentoo.conf
+
+#----- Change root to domu --------------------------------
+#-- DNS Settings
+cp -L /etc/resolv.conf etc/
+
+#-- Link pseudo filesystems
+mount -t proc proc /mnt/gentoo/proc
+mount --rbind /dev /mnt/gentoo/dev
+mount --rbind /sys /mnt/gentoo/sys
+
+#-- Actually change root
+chroot /mnt/gentoo /bin/bash
+env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
+
+#----- Portage Prep-prechroot -----------------------------
+# Configure portage
+emerge-webrsync
+emerge --sync
+
+# Clear out eselect news...
+eselect news read
+eselect news purge
+
+#-- Set timezone
+echo "America/Detroit" > /etc/timezone
+emerge --config sys-libs/timezone-data
+
+#-- Install vim... jesus
+emerge -avt vim
+
+#-- Configure locale
+# Choose the desired locales in locale.gen and create them
+vim /etc/locale.gen
+locale-gen
+
+# Pick the correct local eselect
+eselect locale list
+
+# Potentially select C and then add LC_CTYPE="en_US.UTF-8"
+vim /etc/env.d/02locale
+
+env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
+
+#----- Kernel ---------------------------------------------
+emerge -v sys-kernel/gentoo-sources 
+
+# Copy in a good configuration
+# Make the kernel
+cd /usr/src/linux
+make -j9
+
+#----- Initramfs ------------------------------------------
+# Using dracut for consistency
+echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords/dracut
+emerge -av sys-kernel/dracut
+
+#----- Bootloader -----------------------------------------
+
+
+# Alternatively, it may be reasonable to copy another zvol
+zfs snap create xen-pl/XEN/vdisk/gentoo-domu@pre-clone
+zfs send xen-pl/XEN/vdisk/gentoo-domu@pre-clone | zfs recv xen-pl/XEN/vdisk/domain-domu

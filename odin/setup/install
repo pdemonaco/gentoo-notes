@@ -82,7 +82,7 @@ zfs create -o mountpoint=/usr/portage/packages sys-pl/GENTOO/packages
 # ccache directory
 zfs create -o mountpoint=/var/tmp/ccache -o compression=lz4 sys-pl/GENTOO/ccache
 
-#----- Installation Files ---------------------------------
+#----- Configure the boot-pl ------------------------------
 # Moving to the SSD - shitters
 zpool attach sys-pl "${DISK1}-part3" "${DISK3}-part3"
 zpool attach boot-pl "${DISK1}-part2" "${DISK3}-part2"
@@ -101,8 +101,8 @@ zpool import -f -o cachefile= -R /mnt/gentoo sys-pl
 cd /mnt/gentoo
 
 ## Download Sources
-wget ftp://ftp.gtlib.gatech.edu/pub/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20150521.tar.bz2
-wget ftp://ftp.gtlib.gatech.edu/pub/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20150521.tar.bz2.DIGESTS
+wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2
+wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2.DIGESTS
 
 ## Corruption check
 # Now that we have the sources, check them out
@@ -113,15 +113,16 @@ grep --color $(openssl dgst -r -sha512 stage3-amd64-*.tar.bz2 | awk '{print $1}'
 tar xvjpf stage3-*.tar.bz2 --xattrs
 
 ## Download the portage snapshot
-wget ftp://ftp.gtlib.gatech.edu/pub/gentoo/snapshots/portage-latest.tar.xz
-wget ftp://ftp.gtlib.gatech.edu/pub/gentoo/snapshots/portage-latest.tar.xz.md5sum
+wget http://lug.mtu.edu/gentoo/snapshots/portage-latest.tar.xz
+wget http://lug.mtu.edu/gentoo/snapshots/portage-latest.tar.xz.md5sum
 
 ## Check for corruption
 grep --color $(openssl dgst -r -md5 portage-latest.tar.xz | awk '{print $1}') portage-latest.tar.xz.md5sum
 
 ##### Portage #####
 # Mix in some steps from chapters 5-6 of the gentoo handbook
-# Mainly setting up make.conf
+# 1) make.conf
+# 2) 
 
 # Determine instruction set
 emerge -1v app-portage/cpuinfo2cpuflags
@@ -144,7 +145,7 @@ mount --rbind /sys /mnt/gentoo/sys
 
 ## chroot
 chroot /mnt/gentoo /bin/bash
-env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
+env-update && source /etc/profile && export PS1="(chroot) $PS1"
 
 #----- basic-setup ----------------------------------------
 ## Configure Portage
@@ -314,8 +315,10 @@ rc-update add sshd default
 ## system monitor
 SYS_MON="sys-process/htop \
     sys-process/lsof \
-    sys-process/nmon \
-    sys-apps/pciutils \
+    sys-process/nmon" 
+
+## Tools to view hardware details
+SYS_PROBE="sys-apps/pciutils \
     sys-apps/usbutils \
     sys-apps/lshw \
     sys-apps/smartmontools"
