@@ -117,18 +117,111 @@ env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
 #----- Kernel ---------------------------------------------
 emerge -v sys-kernel/gentoo-sources 
 
+#-- Prepare the sources
 # Copy in a good configuration
-# Make the kernel
+KERNEL_VERSION="4.1.15-gentoo-r1"
 cd /usr/src/linux
-make -j9
+
+#-- Make the kernel and install
+make -j9 && make -j9 modules_install
+cp arch/x86_64/boot/bzImage /boot/kernel-${KERNEL_VERSION}-domu00
 
 #----- Initramfs ------------------------------------------
 # Using dracut for consistency
+
+#-- Install dracut
 echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords/dracut
 emerge -av sys-kernel/dracut
 
-#----- Bootloader -----------------------------------------
+#-- create and rename the new initramfs
+dracut --xz --kver ${KERNEL_VERSION}
+mv initramfs-${KERNEL_VERSION}.img initramfs-${KERNEL_VERSION}-domu00.img
 
+#----- Bootloader -----------------------------------------
+# GRUB - because reasons
+emerge -av sys-boot/grub:2
+
+# Note that grub is chain-loaded from outside
+# no need to "install"
+#-- Update grub defaults
+# Add this for dvorak
+GRUB_CMDLINE_LINUX="vconsole.keymap=dvorak"
+
+#-- Generate grub config
+# /boot should be mounted at this point
+mkdir /boot/grub
+cd /boot
+grub2-mkconfig -o grub/grub.cfg
+
+#----- Filesystem Information -----------------------------
+# Configure fstab
+vim /etc/fstab
+
+#----- Networking -----------------------------------------
+# Trivial dhcp config
+vim /etc/conf.d/net
+
+#-- Hostname
+# Something basic for base install
+vim /etc/conf.d/hostname
+
+# Store full hostnames in case DNS is down
+vim /etc/hosts
+
+#-- Configure Service
+cd /etc/init.d/
+ln -s net.lo net.eth0
+eselect rc add net.eth0 default
+
+#----- Finalizing Install ---------------------------------
+
+#-- Root Password
+passwd
+
+#-- Default Editor
+eselect editor list
+eselect editor set 3
+
+#-- SSH Must be Executing
+eselect rc add sshd default
+
+#-- System Logger
+# metalog for the moment - we'll need to do remote logging eventually
+emerge -avt app-admin/metalog
+eselect rc add metalog default
+
+#-- Cron
+emerge -avt sys-process/fcron
+eselect rc add fcron default
+crontab /etc/crontab
+
+#----- Install Stuff --------------------------------------
+#-- system monitor
+SYS_MON="sys-process/htop \
+    sys-process/lsof \
+    sys-process/nmon" 
+
+#-- portage tools
+PORTAGE="app-portage/gentoolkit \
+    app-portage/layman \
+    app-portage/pfl"
+
+#-- network tools
+NET_TOOLS="net-analyzer/nmap \
+    net-analyzer/traceroute \
+    net-dns/bind-tools \
+    net-misc/netifrc \
+    net-misc/dhcpcd \
+    net-firewall/iptables \
+    net-misc/netkit-telnetd"
+
+#-- General purpose
+GENERAL="app-misc/screen \
+    app-editors/vim \
+    app-text/tree \
+    app-shells/zsh"
+
+emerge -avt ${SYS_MON} ${PORTAGE} ${NET_TOOLS} ${GENERAL}
 
 # Alternatively, it may be reasonable to copy another zvol
 zfs snap create xen-pl/XEN/vdisk/gentoo-domu@pre-clone
