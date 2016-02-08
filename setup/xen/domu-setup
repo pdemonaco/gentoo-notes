@@ -195,6 +195,9 @@ emerge -avt sys-process/fcron
 eselect rc add fcron default
 crontab /etc/crontab
 
+#-- Add the following line to /etc/inittab
+echo "c0:2345:respawn:/sbin/agetty 38400 hvc0 linux" >> /etc/inittab
+
 #----- Install Stuff --------------------------------------
 #-- system monitor
 SYS_MON="sys-process/htop \
@@ -219,10 +222,43 @@ NET_TOOLS="net-analyzer/nmap \
 GENERAL="app-misc/screen \
     app-editors/vim \
     app-text/tree \
-    app-shells/zsh"
+    app-shells/zsh \
+    app-admin/sudo"
 
 emerge -avt ${SYS_MON} ${PORTAGE} ${NET_TOOLS} ${GENERAL}
 
+#----- Configure Sudo -------------------------------------
+# Uncomment the "wheel" rule
+visudo
+
+# %wheel ALL=(ALL) ALL
+
+#----- Prepare User ---------------------------------------
+#-- Create User
+useradd -m -G users,wheel -s /bin/zsh pdemonaco
+
+#-- Copy over config files
+# ~/.zshrc
+# ~/.gitconfig
+# ~/.vimrc
+
+#----- Unmount File Systems -------------------------------
+#-- Virtual File Systems
+umount -l /mnt/gentoo/proc /mnt/gentoo/dev /mnt/gentoo/sys
+
+#-- Physical FS
+umount /mnt/gentoo/boot
+umount /mnt/gentoo
+
+#----- Create Domain Config -------------------------------
+# Copy another system
+cp /etc/xen/config/gentoo-ext4 /etc/xen/config/<newVM>
+
+# Update the Disk
+
+# Generate Random MAC
+xxd -p -l 6 /dev/urandom | awk '{ and_num = strtonum("0xfeffffffffff"); or_num = strtonum("0x020000000000"); numstr = "0x"$1; num = strtonum(numstr); mod_num = and( or( num, or_num ), and_num ); printf "%0x\n", mod_num; }'
+
 # Alternatively, it may be reasonable to copy another zvol
-zfs snap create xen-pl/XEN/vdisk/gentoo-domu@pre-clone
-zfs send xen-pl/XEN/vdisk/gentoo-domu@pre-clone | zfs recv xen-pl/XEN/vdisk/domain-domu
+zfs snap xen-pl/XEN/vdisk/gentoo-ext4@pre-clone
+zfs send xen-pl/XEN/vdisk/gentoo-ext4@pre-clone | zfs recv xen-pl/XEN/vdisk/ns0
