@@ -1,0 +1,2 @@
+HPZR2440wHPZR24wintegrated|HPZR2440w:HDMI2:--primary --auto --above eDP1;--off	integrated:eDP1:--off;--auto	HPZR24w:HDMI3:--auto --left-of HDMI2;--off
+DELLST2421Lintegrated|integrated:eDP1:--auto;--auto	DELLST2421L:HDMI3:--left-of eDP1;-off
