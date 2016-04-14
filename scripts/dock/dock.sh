@@ -2,7 +2,7 @@
 # Quick and dirty script to connect to other monitors at work
 
 # Constants
-SOURCE="display_directives"
+SOURCE="./display_directives"
 DOCK_FILE="/tmp/dock_mons"
 CMD_FILE="/tmp/dock_cmds"
 
