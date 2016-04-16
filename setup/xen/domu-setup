@@ -262,3 +262,13 @@ xxd -p -l 6 /dev/urandom | awk '{ and_num = strtonum("0xfeffffffffff"); or_num =
 # Alternatively, it may be reasonable to copy another zvol
 zfs snap xen-pl/XEN/vdisk/gentoo-ext4@pre-clone
 zfs send xen-pl/XEN/vdisk/gentoo-ext4@pre-clone | zfs recv xen-pl/XEN/vdisk/ns0
+
+# Update host references
+# /etc/hosts
+# /etc/conf.d/hostname
+
+# Alter the host keys
+/usr/bin/ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""
+/usr/bin/ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""
+/usr/bin/ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
+
