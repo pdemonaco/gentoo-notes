@@ -41,3 +41,6 @@ zmodload zsh/datetime
 
 # Enable math functions
 zmodload zsh/mathfunc
+
+# Set browser 
+export BROWSER="/usr/bin/google-chrome-stable"
