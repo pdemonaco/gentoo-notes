@@ -140,7 +140,9 @@ bindsym $mod+y exec "./scripts/dock2.sh start"
 bindsym $mod+Shift+y exec "./scripts/dock2.sh stop"
 
 # lock the system using slock
-bindsym $mod+Shift+l exec "slock"
+#bindsym $mod+Shift+l exec "slock"
+bindsym $mod+Shift+l exec "i3lock -dut -I 240 -i /home/pdemonaco/Dropbox/Images/Backgrounds/simon_stalenhag/flyby_1920.png"
+
 
 # reload the configuration file
 bindsym $mod+Shift+J reload
