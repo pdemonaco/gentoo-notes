@@ -1,0 +1,6 @@
+! Set All Base Colors ---------------------
+*foreground: white
+*background: black
+
+! PRIMARY and Clipboard -------------------
+XTerm*VT100.translations: #override <Btn1Up>: select-end(PRIMARY, CLIPBOARD, CUT_BUFFER0)
