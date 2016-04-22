@@ -1,0 +1,14 @@
+#!/bin/bash
+# Configure global parameters
+git config --global user.name "Phil DeMonaco"
+git config --global user.email "pdemon@gmail.com"
+git config --global core.editor vim
+git config --global color.ui true
+
+# Configure ssh
+mkdir ~/.ssh
+cd ~/.ssh
+ssh-keygen -t rsa -C "pdemon@gmail.com"
+
+# Test the connection
+ssh -T git@github.com
