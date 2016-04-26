@@ -1,0 +1,19 @@
+$TTL 1W             ; Might as well leave it for
+                    ; a week bro
+$ORIGIN 127.in-addr.arpa.
+; SOA - Start Of Authority
+;   serial num          : Time of last update YYYYMMDDSS where SS is sequence
+;   refresh             : Interval between slave update checks
+;   retry               : Window between update attempts
+;   expire              : Slave authoritative period without successful update
+;   negative caching TTL: Period for NXDOMAIN caching
+@       IN  SOA   localhost. root.localhost.    (
+            2014122300  ; serial number
+            3h          ; refresh
+            15          ; retry
+            1w          ; expire
+            3h          ; negative caching TTL
+            )
+            IN      NS      localhost.
+1           IN      PTR     localhost.
+

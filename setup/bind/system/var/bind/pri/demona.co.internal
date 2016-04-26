@@ -1,0 +1,19 @@
+$ORIGIN .
+$TTL 86400	; 1 day
+demona.co		IN SOA	ns0.demona.co. pdemonan.gmail.com.demona.co. (
+				2016023970 ; serial
+				43200      ; refresh (12 hours)
+				900        ; retry (15 minutes)
+				1814400    ; expire (3 weeks)
+				7200       ; minimum (2 hours)
+				)
+			NS	ns0.demona.co.
+$ORIGIN demona.co.
+$TTL 86400	; 1 day
+gw			A	172.24.132.1
+netsrv0			A	172.24.132.3
+ns0			A	172.24.132.7
+ntp			A	172.24.132.4
+odin			A	172.24.132.5
+pf			A	172.24.132.2
+yggdrasil		A	172.24.132.1
