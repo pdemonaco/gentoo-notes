@@ -5,3 +5,4 @@ net-misc/netifrc
 net-misc/dhcpcd
 net-firewall/iptables
 net-misc/netkit-telnetd
+net-analyzer/lft

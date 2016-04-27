@@ -2,5 +2,4 @@ sys-process/htop
 sys-process/lsof
 sys-process/nmon
 net-analyzer/iftop
-net-analyzer/lft
 net-analyzer/nload
