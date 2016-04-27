@@ -3,3 +3,5 @@ app-portage/layman
 app-portage/pfl
 app-portage/eix
 app-portage/mirrorselect
+app-portage/portage-utils
+app-portage/euses

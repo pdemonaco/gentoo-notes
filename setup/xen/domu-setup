@@ -115,7 +115,7 @@ vim /etc/env.d/02locale
 env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
 
 #----- Kernel ---------------------------------------------
-emerge -v sys-kernel/gentoo-sources 
+emerge -v sys-kernel/gentoo-sources
 
 #-- Prepare the sources
 # Copy in a good configuration
