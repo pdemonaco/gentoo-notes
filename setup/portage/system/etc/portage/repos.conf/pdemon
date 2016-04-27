@@ -1,0 +1,4 @@
+[pdemon]
+location = /usr/local/portage-pdemon
+masters = gentoo
+auto-sync = no
