@@ -5,3 +5,5 @@ app-portage/eix
 app-portage/mirrorselect
 app-portage/portage-utils
 app-portage/euses
+app-portage/elogv
+app-portage/genlop
