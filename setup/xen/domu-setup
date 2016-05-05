@@ -65,7 +65,7 @@ emerge -1v app-portage/cpuinfo2cpuflags
 cpuinfo2cpuflags-x86
 
 # Collect and store a good mirrorlist
-mirrorselect -D -s4 -b10 -o /tmp/mirrors
+mirrorselect -D -s4 -b10 -o >> /tmp/mirrors
 
 #-- repo configuration
 # Note that we can't switch to git-based until git has been installed in the domu
@@ -119,7 +119,7 @@ emerge -v sys-kernel/gentoo-sources
 
 #-- Prepare the sources
 # Copy in a good configuration
-KERNEL_VERSION="4.1.15-gentoo-r1"
+KERNEL_VERSION="4.4.6-gentoo"
 cd /usr/src/linux
 
 #-- Make the kernel and install
@@ -187,11 +187,11 @@ eselect rc add sshd default
 
 #-- System Logger
 # metalog for the moment - we'll need to do remote logging eventually
-emerge -avt app-admin/metalog
+emerge -vt app-admin/metalog
 eselect rc add metalog default
 
 #-- Cron
-emerge -avt sys-process/fcron
+emerge -vt sys-process/fcron
 eselect rc add fcron default
 crontab /etc/crontab
 
