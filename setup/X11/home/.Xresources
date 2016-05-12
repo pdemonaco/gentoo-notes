@@ -2,5 +2,8 @@
 *foreground: white
 *background: black
 
+! Xterm Specific Settings`
+xterm*saveLines: 2000
+
 ! PRIMARY and Clipboard -------------------
 XTerm*VT100.translations: #override <Btn1Up>: select-end(PRIMARY, CLIPBOARD, CUT_BUFFER0)
