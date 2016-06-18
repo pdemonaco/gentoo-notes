@@ -23,7 +23,7 @@ env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild \
 #=== initramfs ===============================================================
 # Originally I was using dracut because genkernel wasn't building /dev/disk
 # Make sure dracut uses the right kernel to get it's modules... motherfucker
-dracut --xz --kver 4.1.15-gentoo-r1
+dracut --xz --kver 4.4.6-gentoo
 # Might have to edit /usr/lib/dracut/modules.d/90zfs/module-setup.sh
 
 # Genkernel - works great in a domU
