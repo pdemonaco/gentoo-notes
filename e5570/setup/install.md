@@ -142,69 +142,198 @@ Extract the tarball
 tar xvjpf stage3-*.tar.bz2 --xattrs
 ```
 
-#----- etc git tracking -----------------------------------
-# Setup git tracking for etc prior to doing anything
+# System Configuration
 
-#----- Portage Prep-prechroot -----------------------------
-# Mix in some steps from chapters 5-6 of the gentoo handbook
-#-- make.conf
+## Change Root
 
-# Determine instruction set for CPU_FLAGS_X86
-emerge -1v app-portage/cpuinfo2cpuflags
-cpuinfo2cpuflags-x86
+Copy over our resolv.conf file to ensure DNS resolution continues to operate.
 
-# Collect and store a good mirrorlist
-mirrorselect -D -s4 -b10 -o >> /tmp/mirrors
-
-#-- repo configuration
-# Note that we can't switch to git-based until git has been installed in the domu
-mkdir etc/portage/repos.conf
-cp usr/share/portage/config/repos.conf etc/portage/repos.conf/gentoo.conf
-
-#----- Change root to domu --------------------------------
-#-- DNS Settings
+```bash
 cp -L /etc/resolv.conf etc/
+```
 
-#-- Link pseudo filesystems
+Link pseudo filesystems.
+
+```bash
 mount -t proc proc /mnt/gentoo/proc
 mount --rbind /dev /mnt/gentoo/dev
 mount --rbind /sys /mnt/gentoo/sys
+```
 
-#-- Actually change root
+Actually change over to the local root environment.
+
+```bash
 chroot /mnt/gentoo /bin/bash
 env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
+```
 
-#----- Portage Prep-prechroot -----------------------------
-# Configure portage
-emerge-webrsync
+## Configure portage
+
+Copy in a good make.conf file to start. Once it's in place, pass in an additional
+set of parameters using the CPU flags utility
+
+```bash
+emerge -1v app-portage/cpuinfo2cpuflags
+cpuinfo2cpuflags-x86
+```
+
+With those changes in place, sync an updated copy of the portage tree and remerge with current config.
+
+```bash
 emerge --sync
+emerge -avtuDN world
+```
 
-# Clear out eselect news...
+Clear out eselect news...
+
+```bash
 eselect news read
 eselect news purge
+```
 
-#-- Set timezone
+Collect some good mirrors and add the updated record to make.conf.
+
+```bash
+emerge -1av mirrorselect
+mirrorselect -D -s4 -b10 -o >> /tmp/mirrors
+```
+
+### Git based Portage 
+
+Switch to git-based portage tree for gentoo.
+
+```bash
+mkdir etc/portage/repos.conf
+cp usr/share/portage/config/repos.conf etc/portage/repos.conf/gentoo.conf
+```
+
+Modify the new gentoo.conf to reflect this change
+
+```ini
+[DEFAULT]
+main-repo = gentoo
+
+[gentoo]
+location = /usr/portage
+sync-type = git
+sync-uri = https://github.com/gentoo-mirror/gentoo.git
+auto-sync = yes
+```
+
+Unmount the distfiles and packages file systems.
+
+```bash
+zfs umount sys-pl/GENTOO/distfiles
+zfs umount sys-pl/GENTOO/packages
+```
+
+Clear out the existing portage tree
+
+```bash
+cd /usr/portage
+rm -r ./*
+emerge --sync
+```
+
+Remount the two file systems which were previously unmounted.
+
+```bash
+zfs umount sys-pl/GENTOO/distfiles
+zfs umount sys-pl/GENTOO/packages
+```
+
+## Base configuration
+
+Definitely mix in steps from chapters 5-6 of the handbook here, but first
+install vim - don't be a savage.
+
+```bash
+emerge -avtn app-editors/vim
+```
+
+Once we have vim we need it to be the default editor for our system.
+
+```bash
+eselect editor list
+eselect editor set 3
+```
+![Setting the editor](img/editor-select.png)
+
+### Git Tracking for /etc
+
+Basic git tracking for etc.
+
+```bash
+cd /etc
+git init
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+```
+
+### Timezone Data
+
+```bash
 echo "America/Detroit" > /etc/timezone
 emerge --config sys-libs/timezone-data
+```
 
-#-- Install vim... jesus
-emerge -avt vim
+### Locale
 
-#-- Configure locale
-# Choose the desired locales in locale.gen and create them
+Prep the locale list
+
+```bash
+git add /etc/locale.gen
 vim /etc/locale.gen
 locale-gen
+```
 
-# Pick the correct local eselect
-eselect locale list
+Choose the locale you want to be the primary.
 
-# Potentially select C and then add LC_CTYPE="en_US.UTF-8"
-vim /etc/env.d/02locale
+![Locale List](img/locale-list.png)
 
-env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
+```bash
+eselect locale set 4
+```
 
-#----- Kernel ---------------------------------------------
+## Kernel
+
+Emerge the standard gentoo sources. Hardened would be nice, but it's 
+problematic for desktop use.
+
+```bash
 emerge -v sys-kernel/gentoo-sources
+KERNEL_VERSION="4.4.6-gentoo"
+cd /usr/src/linux
+```
+
+Next we need to assemble a listing of the relevant devices via lspci. Note 
+that this may need to be executed from outside of the chroot environment.
+
+```bash
+emerge --ask sys-apps/pciutils
+lspci -k
+```
+
+![Device Listing](img/lspci.png)
+
+This system utilizes the following kernel drivers:
+
+| Device Name | Module Name | Kernel Flag | Description |
+---------------------------------------------------------
+| Network controller | iwlmvm | CONFIG_IWLMVM | Intel Wireless 8260 |
+| Unassigned class | rtsx_pci | CONFIG_MFD_RTSX_PCI | Realtek PCI-E card reader |
+| Display controller | radeon | | AMD R7 M370 Graphics Card |
+| Ethernet controller Intel Corporation Ethernet Connection (2) I219-LM | e1000e | CONFIG_E1000E | Intel I219-LM |
+| Intel Corporation Sunrise Point-H SMBus | i2c_i801 | CONFIG_I2C_I801 | i2c interface |
+| Audio device Intel Corporation Sunrise Point-H HD Audio | snd-hda-intel | CONFIG_SND_HDA_INTEL | Intel HD Audio (Azalia) |
+| ISA Bridge Intel Corporation Sunrise Point-H LPC Controller | - | CONFIG_SND | Advanced Linux Sound Architecture |
+| PCI bridge Intel Corporation Sunrise Point-H PCI Express Root Port | shpchp | CONFIG_HOTPLUG_PCI_SHPC | PCI Hotplug |
+| SATA controller Intel Corporation Device a102 | ahci | CONFIG_SATA_AHCI | Intel SATA AHCI Controller |
+| Intel Corporation Sunrise Point-H CSME HECI | mei | CONFIG_INTEL_MEI | Intel Management Engine |
+| USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller | xhci-hcd | CONFIG_USB_XHCI_HCD | USB 3.0 Driver |
+| Intel Corporation Device 1903 | CONFIG_INT340X_THERMAL
+| VGA compatible controller: Intel Corporation Device 191b | i915 | CONFIG_DRM_I915 | Integrated Graphics |
+
 
 #-- Prepare the sources
 # Copy in a good configuration
