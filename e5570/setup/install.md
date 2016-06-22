@@ -318,21 +318,21 @@ lspci -k
 
 This system utilizes the following kernel drivers:
 
-| Device Name | Module Name | Kernel Flag | Description |
----------------------------------------------------------
-| Network controller | iwlmvm | CONFIG_IWLMVM | Intel Wireless 8260 |
-| Unassigned class | rtsx_pci | CONFIG_MFD_RTSX_PCI | Realtek PCI-E card reader |
-| Display controller | radeon | | AMD R7 M370 Graphics Card |
-| Ethernet controller Intel Corporation Ethernet Connection (2) I219-LM | e1000e | CONFIG_E1000E | Intel I219-LM |
-| Intel Corporation Sunrise Point-H SMBus | i2c_i801 | CONFIG_I2C_I801 | i2c interface |
-| Audio device Intel Corporation Sunrise Point-H HD Audio | snd-hda-intel | CONFIG_SND_HDA_INTEL | Intel HD Audio (Azalia) |
-| ISA Bridge Intel Corporation Sunrise Point-H LPC Controller | - | CONFIG_SND | Advanced Linux Sound Architecture |
-| PCI bridge Intel Corporation Sunrise Point-H PCI Express Root Port | shpchp | CONFIG_HOTPLUG_PCI_SHPC | PCI Hotplug |
-| SATA controller Intel Corporation Device a102 | ahci | CONFIG_SATA_AHCI | Intel SATA AHCI Controller |
-| Intel Corporation Sunrise Point-H CSME HECI | mei | CONFIG_INTEL_MEI | Intel Management Engine |
-| USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller | xhci-hcd | CONFIG_USB_XHCI_HCD | USB 3.0 Driver |
-| Intel Corporation Device 1903 | CONFIG_INT340X_THERMAL
-| VGA compatible controller: Intel Corporation Device 191b | i915 | CONFIG_DRM_I915 | Integrated Graphics |
+Device Name | Module Name | Kernel Flag | Description 
+-------------|-------------|-------------|-------------
+Network controller | iwlmvm | CONFIG_IWLMVM | Intel Wireless 8260 
+Unassigned class | rtsx_pci | CONFIG_MFD_RTSX_PCI | Realtek PCI-E card reader 
+Display controller | radeon | | AMD R7 M370 Graphics Card 
+Ethernet controller Intel Corporation Ethernet Connection (2) I219-LM | e1000e | CONFIG_E1000E | Intel I219-LM 
+Intel Corporation Sunrise Point-H SMBus | i2c_i801 | CONFIG_I2C_I801 | i2c interface 
+Audio device Intel Corporation Sunrise Point-H HD Audio | snd-hda-intel | CONFIG_SND_HDA_INTEL | Intel HD Audio (Azalia) 
+ISA Bridge Intel Corporation Sunrise Point-H LPC Controller | - | CONFIG_SND | Advanced Linux Sound Architecture
+PCI bridge Intel Corporation Sunrise Point-H PCI Express Root Port | shpchp | CONFIG_HOTPLUG_PCI_SHPC | PCI Hotplug
+SATA controller Intel Corporation Device a102 | ahci | CONFIG_SATA_AHCI | Intel SATA AHCI Controller
+Intel Corporation Sunrise Point-H CSME HECI | mei | CONFIG_INTEL_MEI | Intel Management Engine
+USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller | xhci-hcd | CONFIG_USB_XHCI_HCD | USB 3.0 Driver
+Intel Corporation Device 1903 | int3403_thermal | CONFIG_INT340X_THERMAL | Non-CPU based thermal sensors and control
+VGA compatible controller: Intel Corporation Device 191b | i915 | CONFIG_DRM_I915 | Integrated Graphics
 
 
 #-- Prepare the sources
