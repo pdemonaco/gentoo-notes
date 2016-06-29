@@ -6,3 +6,4 @@ net-misc/dhcpcd
 net-firewall/iptables
 net-misc/netkit-telnetd
 net-analyzer/lft
+net-dns/ldns-utils
