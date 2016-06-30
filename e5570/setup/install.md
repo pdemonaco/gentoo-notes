@@ -628,6 +628,24 @@ git commit
 
 ![Grub Default](img/grub-defaults.png)
 
+Apply the grub directly to the hard disk.
+
+```bash
+mount /boot/efi
+grub2-install --target=x86_64-efi
+```
+
+![Successful Grub Install](img/grub-installation.png)
+
+Generate the grub config.
+
+```bash
+cd /boot
+grub2-mkconfig -o grub/grub.cfg
+```
+
+TODO - figure out what's wrong with grub2-mkconfig
+
 #-- Generate grub config
 # /boot should be mounted at this point
 mkdir /boot/grub
