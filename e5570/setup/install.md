@@ -11,7 +11,7 @@ POOL="sys-pl"
 Create the partition table on the primary hard disk. Note that it should be optimally aligned. Also, switch to mebibytes.
 
 ```bash
-parted -a optimal /dev/sda
+parted -a optimal "${DISK1}"
 unit mib
 mklabel gpt
 ```
@@ -303,11 +303,48 @@ problematic for desktop use.
 ```bash
 emerge -v sys-kernel/gentoo-sources
 KERNEL_VERSION="4.4.6-gentoo"
-cd /usr/src/linux
 ```
+
+With the source in place we need a starting point. Copy in the default x86 
+configuration and run the "silent" configuration updater.
+
+```bash
+cd /usr/src/linux
+cp arch/x86/configs/x86_64_defconfig .config
+make defconfig
+```
+
+Interesting settings:
+Kernel Flag | Description | Link
+------------|-------------|-----
+CONFIG_IKCONFIG | Allow access to .config through proc | N/A
+SCHED_AUTOGROUP | Automatic process group scheduling | http://www.usenix.org.uk/content/CONFIG_SCHED_AUTOGROUP.html
+CC_STACKPROTECTOR_STRONG | Strong stack overflow protection | http://cateee.net/lkddb/web-lkddb/CC_STACKPROTECTOR_STRONG.html
+X86_INTEL_LPSS | Low power subsystem support? | N/A
+MCORE2 | Processor family | 
+PREEMPT_VOLUNTARY | Preemption Model - possibly consider PREEMPT | N/A
+CLEANCACHE | Essentially an eviction zone, could be interesting | N/A
+FRONTSWAP | More trancendent memory stuff - interesting | N/A
+HZ_1000 | Highest possible timer frequency - we need the speed | N/A
+LEGACY_VSYSCALL_NONE | Investigate possible removal of legacy calls | N/A
+CPU_FREQ_DEFAULT_GOV_USERSPACE | Might need some handling for CPU freq | N/A
+X86_INTEL_PSTATE | Probably needed for this one | N/A
+CONFIG_NET_IPIP | Read more about this? Could be interesting for wireless roaming | N/A
+
+### MCE Log
+
+Ensure that the appropriate MCE features are present. Also the following 
+applicaiton is required:
+
+```bash
+emerge -av app-admin/mcelog
+```
+
+### Physical Device Configuration
 
 Next we need to assemble a listing of the relevant devices via lspci. Note 
 that this may need to be executed from outside of the chroot environment.
+
 
 ```bash
 emerge --ask sys-apps/pciutils
@@ -322,11 +359,10 @@ Device Name | Module Name | Kernel Flag | Description
 -------------|-------------|-------------|-------------
 Network controller | iwlmvm | CONFIG_IWLMVM | Intel Wireless 8260 
 Unassigned class | rtsx_pci | CONFIG_MFD_RTSX_PCI | Realtek PCI-E card reader 
-Display controller | radeon | | AMD R7 M370 Graphics Card 
+Display controller | radeon | CONFIG_DRM_RADEON | AMD R7 M370 Graphics Card 
 Ethernet controller Intel Corporation Ethernet Connection (2) I219-LM | e1000e | CONFIG_E1000E | Intel I219-LM 
 Intel Corporation Sunrise Point-H SMBus | i2c_i801 | CONFIG_I2C_I801 | i2c interface 
 Audio device Intel Corporation Sunrise Point-H HD Audio | snd-hda-intel | CONFIG_SND_HDA_INTEL | Intel HD Audio (Azalia) 
-ISA Bridge Intel Corporation Sunrise Point-H LPC Controller | - | CONFIG_SND | Advanced Linux Sound Architecture
 PCI bridge Intel Corporation Sunrise Point-H PCI Express Root Port | shpchp | CONFIG_HOTPLUG_PCI_SHPC | PCI Hotplug
 SATA controller Intel Corporation Device a102 | ahci | CONFIG_SATA_AHCI | Intel SATA AHCI Controller
 Intel Corporation Sunrise Point-H CSME HECI | mei | CONFIG_INTEL_MEI | Intel Management Engine
@@ -334,36 +370,263 @@ USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller | xhci
 Intel Corporation Device 1903 | int3403_thermal | CONFIG_INT340X_THERMAL | Non-CPU based thermal sensors and control
 VGA compatible controller: Intel Corporation Device 191b | i915 | CONFIG_DRM_I915 | Integrated Graphics
 
+### Crypt support
 
-#-- Prepare the sources
-# Copy in a good configuration
+DM_CRYPT
+
+Also, potentially add a bunch of different cipher and compression algorithms. I added everything.
+
+### Setup kernel module load
+iwlmwm
+rstx_pci
+shpchp
+mei
+int3403_thermal
+
+### Sound settings
+
+CONFIG_SND_HDA_PREALLOC_SIZE - set to 2048
+
+### Graphics 
+
+https://wiki.gentoo.org/wiki/Amdgpu
+https://wiki.gentoo.org/wiki/Radeon
+
+### Compile
+
+From within the kernel directory we'll need to build the new version. 
+Before we do, it would be prudent to pull down the latest firmware.
+
+```bash
+cd /etc
+mkdir -p portage/package.accept_keywords
+echo "sys-kernel/linux-firmware ~amd64" >> portage/package.accept_keywords/firmware
+git add portage/package.accept_keywords/firmware
+emerge -v sys-kernel/linux-firmware
+```
+
+Now we need to do our initial compilation.
+
+```bash
 KERNEL_VERSION="4.4.6-gentoo"
 cd /usr/src/linux
-
-#-- Make the kernel and install
+mount ${DISK1}2 /boot
 make -j9 && make -j9 modules_install
-cp arch/x86_64/boot/bzImage /boot/kernel-${KERNEL_VERSION}-domu00
+cp arch/x86_64/boot/bzImage /boot/kernel-${KERNEL_VERSION}-00
+```
 
-#----- Initramfs ------------------------------------------
-# Using dracut for consistency
+## File system requirements
 
-#-- Install dracut
+### Crypt support
+
+Ensure cryptsetup is installed.
+
+```bash
+cd /etc
+echo "sys-fs/cryptsetup pwquality" >> /etc/portage/package.use/cryptsetup
+git add portage/package.use/cryptsetup
+emerge -avt sys-fs/cryptsetup
+```
+
+Note that this may not be using the optimal backend - further research is 
+necessary.
+
+Once cryptsetup is installed we'll need to build out `/etc/crypttab` to 
+instruct dracut on how mounting actually needs to be handled. 
+
+```bash
+cd /etc/
+vim crypttab
+git add crypttab
+git commit
+```
+
+### ZFS Installation
+
+First we'll need to add some keywords to portage to allow installation of the module.
+
+```bash
+cd /etc
+echo "sys-fs/zfs-kmod ~amd64" >> portage/package.accept_keywords/zfs
+echo "sys-kernel/spl ~amd64" >> portage/package.accept_keywords/zfs
+echo "sys-fs/zfs ~amd64" >> portage/package.accept_keywords/zfs
+git add portage/package.accept_keywords/zfs
+```
+
+With these in place we can safely emerge zfs.
+
+```bash
+emerge -v zfs
+```
+
+Once the modules are present we'll need to add them to appropriate runlevels in OpenRC.
+
+```bash
+rc-update add zfs-zed boot
+rc-update add zfs-import boot
+rc-update add zfs-mount boot
+rc-update add zfs-share default
+```
+
+## System Configuration
+
+Finalization steps prior to being able to reboot into the new environment.
+
+### fstab
+
+While most of the involved filesystems will be automatically mounted by ZFS 
+we do need to specify the boot and swap mount points in fstab.
+
+https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/System#Filesystem_information
+
+```bash
+cd /etc/
+git add fstab
+git commit -m 'Blank fstab'
+vim fstab
+```
+
+In this case the following file systems needed modification
+
+Mountpoint | Device | Description
+-----------|--------|------------
+/boot | /dev/sda2 | Base boot partition
+/boot/efi | /dev/sda1 | GRUB EFI partition as we're doing EFI boot
+/ | - | Comment out root as ZFS is handling
+none | /dev/zvol/sys-pl/swap | Our swap block device needs notation here
+
+![Modified fstab](img/fstab.png)
+
+Once the changes are in place, ensure that fstab is added to git.
+
+### Networking
+
+#### Host and Domain Names
+
+Something basic for base install
+
+```bash
+cd /etc
+vim conf.d/hostname
+git add conf.d/hostname
+```
+
+Store full hostnames in case DNS is down
+
+```bash
+cd /etc
+vim hosts
+git add hosts
+```
+
+![Modified hosts](img/hosts.png)
+
+While it'll only be used temporarily before getting blown out by NetowrkManager
+we can go ahead and set a domain name as well.
+
+```bash
+cd /etc
+echo 'dns_domain_lo="mynetwork"' > conf.d/net
+git add conf.d/net
+git commit -m 'Basic hostname & hosts entries'
+```
+
+#### Temporary Network Config
+
+Installing network manager before the first boot is too much of a hassel so 
+we need to set up a simple config with netifrc.
+
+First determine the adapter name via `ip addr`
+
+![Adapter Name](img/ip-addr-adapter.png)
+
+With the name determined, create a new symlink from the lo script to the adapter
+and add it to the default run-level.
+
+```bash
+cd /etc/init.d/
+ln -s net.lo net.enp0s31f6
+git add net.enp0s31f6
+rc-update add net.enp0s31f6
+```
+
+Then add the appropriate lines to /etc/conf.d/net
+
+```bash
+cd /etc/conf.d
+vim net
+git add net
+git commit
+```
+
+![Adapter Config](img/base-adapter-net.png)
+
+### Inital Setup
+
+#### Root Password
+
+Don't forget to set it: `passwd`
+
+#### Kemap
+
+If you want a different keymap in the console set it in /etc/conf.d/keymaps
+
+#### Time-Zone
+
+Assuming the hardware clock is in UTC there's nothing to change here. 
+Definitely double check in the UEFI interface te ensure we are running UTC
+before the first boot.
+
+## Boot Config
+
+### Initramfs
+
+We're going to be using dracut as it has better udev support during boot
+than genkernel as of this writing.
+
+First install the application.
+
+```bash
 echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords/dracut
+cd /etc/
+git add portage/package.accept_keywords/dracut
 emerge -av sys-kernel/dracut
+```
 
-#-- create and rename the new initramfs
-dracut --xz --kver ${KERNEL_VERSION}
-mv initramfs-${KERNEL_VERSION}.img initramfs-${KERNEL_VERSION}-domu00.img
+With dracut installed we'll need to do some basic configuration in 
+`/etc/dracut.conf.d/`
 
-#----- Bootloader -----------------------------------------
-# GRUB - because reasons
+With this config in place we can go ahead and generate our config
+
+```bash
+cd /boot
+dracut --xz --kver ${KERNEL_VERSION} -H
+mv initramfs-${KERNEL_VERSION}.img initramfs-${KERNEL_VERSION}-00.img
+```
+
+### Bootloader
+
+Install GRUB2 along with all necessary ZFS flags.
+
+```bash
+cd /etc
+echo "sys-boot/grub:2 ~amd64" >> portage/package.accept_keywords/zfs
+echo "sys-boot/grub:2 libzfs" >> portage/package.use/zfs
+git add portage/package.use/zfs
+git add portage/package.accept_keywords/zfs
 emerge -av sys-boot/grub:2
+```
 
-# Note that grub is chain-loaded from outside
-# no need to "install"
-#-- Update grub defaults
-# Add this for dvorak
-GRUB_CMDLINE_LINUX="vconsole.keymap=dvorak"
+Then we'll need to update grub with some sane defaults.
+
+```bash
+cd /etc
+vim default/grub
+git add default/grub
+git commit
+```
+
+![Grub Default](img/grub-defaults.png)
 
 #-- Generate grub config
 # /boot should be mounted at this point
@@ -379,12 +642,6 @@ vim /etc/fstab
 # Trivial dhcp config
 vim /etc/conf.d/net
 
-#-- Hostname
-# Something basic for base install
-vim /etc/conf.d/hostname
-
-# Store full hostnames in case DNS is down
-vim /etc/hosts
 
 #-- Configure Service
 cd /etc/init.d/
