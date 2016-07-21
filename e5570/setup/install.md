@@ -315,6 +315,7 @@ make defconfig
 ```
 
 Interesting settings:
+
 Kernel Flag | Description | Link
 ------------|-------------|-----
 CONFIG_IKCONFIG | Allow access to .config through proc | N/A
@@ -577,6 +578,54 @@ Assuming the hardware clock is in UTC there's nothing to change here.
 Definitely double check in the UEFI interface te ensure we are running UTC
 before the first boot.
 
+#### Logging
+
+Wetalog for the moment because its fancy, quick, and easy to setup
+
+```bash
+emerge -vt app-admin/metalog
+eselect rc add metalog default
+```
+
+#### SSH Daemon
+
+SSH Must be Executing
+```bash
+eselect rc add sshd default
+```
+
+#### Cron
+
+We'll also need to get a cron going so we can schedule automatic zfs snapshots everywhere.
+
+```bash
+emerge -vt sys-process/fcron
+eselect rc add fcron default
+crontab /etc/crontab
+```
+
+#### LVM
+
+We're sorta using it right now for the dm-mapper functionality. It's not 
+crucial that it runs, however, we'll want to make sure other programs and
+processes are happy by starting it at boot.
+
+```bash
+eselect rc add lvm boot
+```
+
+#### Local User
+
+Definitely a must have for any system. We'll need to create ourself, and add 
+to the appropriate groups.
+
+```bash
+USER="phil"
+GROUPS="audio,video,users,wheel"
+useradd -m -G "${GROUPS}" -s /bin/zsh "${USER}"
+passwd "${USER}"
+```
+
 ## Boot Config
 
 ### Initramfs
@@ -635,7 +684,7 @@ mount /boot/efi
 grub2-install --target=x86_64-efi
 ```
 
-![Successful Grub Install](img/grub-installation.png)
+![Successful Grub Install](img/grub-install.png)
 
 Generate the grub config.
 
@@ -643,82 +692,6 @@ Generate the grub config.
 cd /boot
 grub2-mkconfig -o grub/grub.cfg
 ```
-
-TODO - figure out what's wrong with grub2-mkconfig
-
-#-- Generate grub config
-# /boot should be mounted at this point
-mkdir /boot/grub
-cd /boot
-grub2-mkconfig -o grub/grub.cfg
-
-#----- Filesystem Information -----------------------------
-# Configure fstab
-vim /etc/fstab
-
-#----- Networking -----------------------------------------
-# Trivial dhcp config
-vim /etc/conf.d/net
-
-
-#-- Configure Service
-cd /etc/init.d/
-ln -s net.lo net.eth0
-eselect rc add net.eth0 default
-
-#----- Finalizing Install ---------------------------------
-
-#-- Root Password
-passwd
-
-#-- Default Editor
-eselect editor list
-eselect editor set 3
-
-#-- SSH Must be Executing
-eselect rc add sshd default
-
-#-- System Logger
-# metalog for the moment - we'll need to do remote logging eventually
-emerge -vt app-admin/metalog
-eselect rc add metalog default
-
-#-- Cron
-emerge -vt sys-process/fcron
-eselect rc add fcron default
-crontab /etc/crontab
-
-#-- Add the following line to /etc/inittab
-echo "c0:2345:respawn:/sbin/agetty 38400 hvc0 linux" >> /etc/inittab
-
-#----- Install Stuff --------------------------------------
-#-- system monitor
-SYS_MON="sys-process/htop \
-    sys-process/lsof \
-    sys-process/nmon" 
-
-#-- portage tools
-PORTAGE="app-portage/gentoolkit \
-    app-portage/layman \
-    app-portage/pfl"
-
-#-- network tools
-NET_TOOLS="net-analyzer/nmap \
-    net-analyzer/traceroute \
-    net-dns/bind-tools \
-    net-misc/netifrc \
-    net-misc/dhcpcd \
-    net-firewall/iptables \
-    net-misc/netkit-telnetd"
-
-#-- General purpose
-GENERAL="app-misc/screen \
-    app-editors/vim \
-    app-text/tree \
-    app-shells/zsh \
-    app-admin/sudo"
-
-emerge -avt ${SYS_MON} ${PORTAGE} ${NET_TOOLS} ${GENERAL}
 
 #----- Configure Sudo -------------------------------------
 # Uncomment the "wheel" rule
@@ -744,24 +717,3 @@ umount /mnt/gentoo/boot
 umount /mnt/gentoo
 
 #----- Create Domain Config -------------------------------
-# Copy another system
-cp /etc/xen/config/gentoo-ext4 /etc/xen/config/<newVM>
-
-# Update the Disk
-
-# Generate Random MAC
-xxd -p -l 6 /dev/urandom | awk '{ and_num = strtonum("0xfeffffffffff"); or_num = strtonum("0x020000000000"); numstr = "0x"$1; num = strtonum(numstr); mod_num = and( or( num, or_num ), and_num ); printf "%0x\n", mod_num; }'
-
-# Alternatively, it may be reasonable to copy another zvol
-zfs snap xen-pl/XEN/vdisk/gentoo-ext4@pre-clone
-zfs send xen-pl/XEN/vdisk/gentoo-ext4@pre-clone | zfs recv xen-pl/XEN/vdisk/ns0
-
-# Update host references
-# /etc/hosts
-# /etc/conf.d/hostname
-
-# Alter the host keys
-/usr/bin/ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""
-/usr/bin/ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""
-/usr/bin/ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
-
