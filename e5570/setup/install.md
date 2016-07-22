@@ -626,6 +626,14 @@ useradd -m -G "${GROUPS}" -s /bin/zsh "${USER}"
 passwd "${USER}"
 ```
 
+#### Sudo
+
+Uncomment the "wheel" rule
+
+```bash
+visudo
+```
+
 ## Boot Config
 
 ### Initramfs
@@ -693,20 +701,6 @@ cd /boot
 grub2-mkconfig -o grub/grub.cfg
 ```
 
-#----- Configure Sudo -------------------------------------
-# Uncomment the "wheel" rule
-visudo
-
-# %wheel ALL=(ALL) ALL
-
-#----- Prepare User ---------------------------------------
-#-- Create User
-useradd -m -G users,wheel -s /bin/zsh pdemonaco
-
-#-- Copy over config files
-# ~/.zshrc
-# ~/.gitconfig
-# ~/.vimrc
 
 #----- Unmount File Systems -------------------------------
 #-- Virtual File Systems
