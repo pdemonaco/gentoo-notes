@@ -1,8 +1,11 @@
 #!/bin/bash
 # Quick and dirty script to connect to other monitors at work
 
+# Determine location
+SCRIPT_DIR=$(dirname $0)
+
 # Constants
-SOURCE="./display_directives"
+SOURCE="${SCRIPT_DIR}/display_directives"
 DOCK_FILE="/tmp/dock_mons"
 CMD_FILE="/tmp/dock_cmds"
 
@@ -37,7 +40,7 @@ for ENTRY in ${MONITORS}
 do
     NAME=$(echo "${ENTRY}" | awk 'BEGIN { FS=":" } { printf "%s", $2 }' | xxd -r -p | sed 's/ //g')
     OUTPUT=$(echo "${ENTRY}" | awk 'BEGIN { FS=":" } { printf "%s", $1 }')
-    
+
     if [[ ${OUTPUT} =~ 'eDP1' ]]; then
         NAME="integrated"
     fi
