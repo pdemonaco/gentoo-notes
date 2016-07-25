@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+# Emerge base ntp library
+emerge -av net-misc/ntp
+
+# Update restriction list in /etc/ntp.conf
+
+# Start & add service
+eselect rc start ntpd
+eselect rc add ntpd default

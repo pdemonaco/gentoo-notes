@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Dependency changes needed for openssl support
+echo "dev-libs/openssl -bindist" >> package.use/strongswan
+echo "net-misc/openssh -bindist" >> package.use/strongswan
+
+# Get it
+emerge -av net-misc/strongswan
+
+# Network Manager
+
+layman -a jkolo
+
+echo "=net-misc/networkmanager-strongswan-1.3.0 ~amd64" >> /etc/portage/package.accept_keywords

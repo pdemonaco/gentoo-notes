@@ -1,0 +1,8 @@
+#!/bin/bash
+# Make sure fuse is present in the kernel
+zcat /proc/config.gz | grep CONFIG_FUSE_FS
+
+# Add exception for jmtpfs
+echo "sys-fs/jmtpfs ~amd64" >> /etc/portage/package.accept_keywords
+
+

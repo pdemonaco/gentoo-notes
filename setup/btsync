@@ -1,0 +1,6 @@
+layman -a bobwya
+
+# Unmask - hope this works
+echo "net-p2p/btsync ~amd64" >> /etc/portage/package.accept_keywords
+
+# Make minor changes to /etc/btsync.conf
