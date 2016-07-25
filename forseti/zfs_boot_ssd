@@ -1,0 +1,62 @@
+#!/usr/bin/zsh
+##### Disk #####
+# This covers both the inital partition layout & zfs setup
+#### Partitions ####
+## Start parted on device sdp
+parted -a optimal /dev/sdp
+
+    ## Convert to mebibytes
+    unit mib
+
+    ## Set the partition table type to GPT
+    mklabel gpt
+
+    ## grub boot
+    # create a 2 MiB file system for BIOS grub
+    mkpart primary 1 3
+    name 1 v0_grub
+    set 1 bios_grub on
+
+    ## boot (Kernel)
+    mkpart primary 3 6147
+    name 2 v0_swap
+
+    ## ZFS Filesystem
+    mkpart primary 6147 -1
+    name 3 v0_rootfs
+
+###### File Systems ######
+# Bootfs doesn't get a file system
+## Swap
+    # This is primarily a read-only file system
+    # so it makes sense to use ext2 here
+    mkswap -L v0_swap /dev/sdp2
+    swapon /dev/sdp2
+
+## Zpool (Partition 3)
+    # Create the actual pool
+    zpool create -f -o ashift=12 -o autoexpand=on -o cachefile=none -o feature@lz4_compress=enabled -O normalization=formD -m none -R /mnt/gentoo syspool mirror /dev/disk/by-id/wwn-0x5001b44c7d378ed0-part3 /dev/disk/by-id/wwn-0x5001b44c7d46dbc5-part3
+    #zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled -O normalization=formD -m none -R /mnt/gentoo rpool mirror /dev/disk/by-id/ /dev/disk/by-id/ata-SanDisk_SDSSDHII120G_143640400592-part3
+
+###### Transfer Existing data
+# This covers capturing and moving existing data
+# to the new disks
+##
+
+## Capture the existing system state
+zfs snap -r rpool@pre_migrate
+
+## transfer the data
+zfs send -R rpool/ROOT@pre_migrate-20150411-2036 | zfs receive syspool/ROOT
+zfs send -R rpool/GENTOO@pre_migrate-20150411-2036 | zfs receive syspool/GENTOO
+zfs send -R rpool/HOME@pre_migrate-20150411-2036 | zfs receive syspool/HOME
+
+###### Create the new file system
+# We're adding a new boot file system
+##
+zfs create -o mountpoint=/boot -o canmount=noauto -o compression=lz4 syspool/BOOT
+zpool set bootfs=syspool/BOOT syspool/BOOT 
+
+
+zpool import -f -o cachefile= -R /mnt/gentoo syspool
+

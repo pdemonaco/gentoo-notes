@@ -1,0 +1,35 @@
+#!/bin/zsh
+## Installing munin
+
+# Get some use flags setup
+# We'll need to get docs, CGI, and Apache
+#  integrated in our setup. The last two
+#  are needed for just in time graphs.
+echo "net-analyzer/munin doc cgi apache syslog dhcpd http ipmi irc" >> /etc/portage/package.use 
+
+# Emerge the package
+emerge -av net-analyzer/munin
+
+# Generate the default cronjobs
+emerge --config net-analyzer/munin
+
+# Update /etc/munin/munin.conf
+#  either echo in the following lines or uncomment
+cgitmpdir /var/cache/munin-cgi/
+graph_strategy cgi
+html_strategy cgi
+
+# Update /etc/conf.d/apache2
+#  the MUNIN_HTML_CGI vhost must
+#  exist
+APACHE2_OPTS="-D DEFAULT_VHOST -D INFO -D MUNIN_HTML_CGI"
+
+## Setup the local node
+# Print out the default plugins
+sudo -u munin munin-node-configure --shell 
+# If they look good, install
+sudo -u munin munin-node-configure --shell | /bin/bash 
+# Attempt to start it
+rc-service munin-node start
+rc-update add munin-node default
+

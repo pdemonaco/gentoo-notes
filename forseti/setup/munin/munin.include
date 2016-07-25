@@ -1,0 +1,41 @@
+# -*- apache -*-
+
+ServerName munin.demona.co
+ServerAlias munin
+
+ServerAdmin pdemon@gmail.com
+
+DocumentRoot /var/www/localhost/htdocs/munin/
+
+ErrorLog    /var/log/apache2/munin.demona.co-error.log
+CustomLog    /var/log/apache2/munin.demona.co-access.log combined
+
+ScriptAlias /munin-cgi/ /usr/libexec/munin/cgi/
+Alias /static /etc/munin/static
+
+<IfDefine MUNIN_HTML_CGI>
+RewriteEngine on
+
+RewriteCond %{REQUEST_URI} (/|\.html)$
+RewriteCond %{REQUEST_URI} !/static
+RewriteRule ^/(.*) /munin-cgi/munin-cgi-html/$1 [PT,L]
+</IfDefine>
+
+<Directory /usr/libexec/munin/cgi/>
+	    Options +ExecCGI
+
+	Order allow,deny
+	    Allow from all
+
+	<IfModule mod_fcgid.c>
+	    	SetHandler fcgid-script
+	</IfModule>
+	    <IfModule !mod_fcgid.c>
+		    SetHandler cgi-script
+	</IfModule>
+</Directory>
+
+<Directory /etc/munin/static>
+	    Order allow,deny
+	    Allow from all
+</Directory>

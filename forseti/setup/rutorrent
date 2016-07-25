@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+## Emerge rtorrent
+emerge -av net-p2p/rtorrent
+
+## Make the torrent filesystem
+zfs create -o mountpoint=/dpool/torrent -o compression=lz4 dpool/DATA/torrent
+
+## Create the relevant file systems
+
+## Copy in .rtorrent.rc
+
+

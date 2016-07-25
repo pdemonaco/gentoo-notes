@@ -1,0 +1,141 @@
+//------------------------ named.conf.header -----------------------
+// Management addresses for devices such as PDUs, UPSs, and Networking 
+acl server_net {
+    172.24.28.0/24;
+};
+
+// Management ports for switches, routers, and etc
+acl network_management_net {
+    172.24.64.0/24;
+};
+
+// Wired clients
+acl client_wired_net {
+    172.24.142.0/24;
+};
+
+// Wireless clients 
+acl client_wireless_net {
+    172.24.128.0/24;
+};
+
+// This is the network where all the shit is hanging
+acl temp_net {
+    192.168.64.0/24;
+};
+
+// The sum of the internal addresses
+acl internal {
+    client_wired_net;
+    client_wireless_net;
+    network_management_net;
+    server_net;
+    temp_net;
+};
+
+// The following ACLs differentiate slaves from masters
+// "Slaves"
+acl ns1 {
+    172.24.28.1;
+};
+// "Masters"
+acl ns0 {
+    172.24.28.2;
+};
+// Groupings
+acl slaves {
+    ns1;
+};
+acl masters {
+    ns0;
+};
+
+// Global options directive
+options {
+    directory "/var/bind";                  // Base directory for all named related files
+    pid-file "/run/named/named.pid";        // Use this for our PID 
+    version "no version available";         // Replaced version string to avoid advertising known weaknesses
+    
+    allow-query-cache { internal; };        // Only allow caching for internal hosts - required for recursion
+    allow-recursion { internal; };          // Only allow recursion for internal hosts
+    allow-query { any; };                   // Ensure anyone is allowed to ask us stuff
+    allow-transfer { "none"; };             // Explicitly deny zone transfer requests unless overridden in zone
+    listen-on port 53 { any; }; 	        // All IPv4 addresses should listen
+};
+
+// DNS presented to internal networks
+view "internal" {
+    match-clients { internal; localhost; };
+    recursion yes;
+
+    zone "demona.co" {
+        type master;
+        file "pri/demona.co.internal";
+        allow-transfer { any; };
+    };
+};
+
+// DNS presented to external networks
+view "external" {
+    match-clients { any; };
+    recursion no;
+
+    zone "." IN {
+        type hint;
+        file "named.ca";
+    };
+
+    zone "localhost" in {
+        type master;
+        file "pri/localhost.external";
+        allow-update{ none; };
+        notify no;
+    };
+
+    zone "127.in-addr.arpa" IN {
+        type master;
+        file "pri/127.rev";
+        allow-update { none; };
+        notify no;
+    };
+
+    zone "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa" IN {
+        type master;
+        file "pri/0000.0000.0000.0000.0000.0000.0000.0001.rev";
+        allow-update { none; };
+        notify no;
+    };
+
+    zone "demona.co" {
+        type master;
+        file "pri/demona.co.external";
+        allow-update { none; };
+        allow-query { any; };
+        allow-transfer { slaves; };
+    };
+};
+
+// Logging set to record to /var/log
+logging{
+	channel local_log {
+     syslog named;
+	 severity debug;
+	 print-time yes;
+	 print-severity yes;
+	 print-category yes;
+	};
+	category default {
+	 local_log;
+	};
+};
+
+// Defines control interface via rndc (Remote Name Daemon Control). See /etc/rndc.conf
+//	Listens on localhost at port 953 and exclusively allows local connections
+key "rndc-key" {
+     algorithm hmac-md5;
+     secret "4dCUXMb9Q4rp9BYRNzihnnfOA13U+Bj3MiNAqHA6eYRSYRh4XH+Ro+T9pUpbHfXxkvDfMbORJd0SanrmxytfHw==";
+};
+controls {
+	inet 127.0.0.1 port 953 allow { localhost; } keys { rndc-key; };
+	inet ::1 port 953 allow { localhost; } keys { rndc-key; };
+};

@@ -1,0 +1,14 @@
+#!/bin/zsh
+## Emerge DHCP service
+emerge -av net-misc/dhcp net-misc/ntp
+
+## Specify the correct listening interfaces
+# in /etc/conf.d/dhcpd
+DHCPD_IFACE="enp4s0"
+
+## Configure the client
+vim /etc/dhcp/dhcpd.conf
+
+## Configure secure updates
+# HMAC - SHA256 
+dnssec-keygen -a HMAC-SHA256 -b 256 -n USER DHCP_UPDATER

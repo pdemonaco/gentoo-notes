@@ -1,0 +1,29 @@
+#!/bin/zsh
+## Add the drz flag 
+echo "net-dns/bind dlz" >> /etc/portage/package.use
+## we can't have openssl using binary packages apparently
+echo "dev-libs/openssl -bindist" >> /etc/portage/package.use
+echo "net-misc/openssh -bindist" >> /etc/portage/package.use
+## Make sure caps (Linux capabilities library) is enabled
+
+## Rebuild the necessary packages
+emerge -avuDN world
+# Install
+emerge -av net-dns/bind
+
+## Network configuration
+vim /etc/bind/named.conf
+# Note that all relevant master and slave zones
+# will need to be created in /var/bin/pri & /var/bin/sec 
+# respectively
+
+## Syslog config
+vim /etc/metalog.conf
+rc-service metalog restart
+
+## Start the service
+rc-service named start
+rc-update add named default
+
+## Get the resolver added
+echo "nameserver 127.0.0.1" > /etc/resolv.conf

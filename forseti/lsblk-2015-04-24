@@ -1,0 +1,42 @@
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT WWN
+sda      8:0    0 111.8G  0 disk            0x5001b44c7d46dbc5
+├─sda1   8:1    0     2M  0 part            0x5001b44c7d46dbc5
+├─sda2   8:2    0     6G  0 part            0x5001b44c7d46dbc5
+└─sda3   8:3    0 105.8G  0 part            0x5001b44c7d46dbc5
+sdb      8:16   0 223.6G  0 disk            0x5001b44bd5ba5a9d
+├─sdb1   8:17   0   488M  0 part            0x5001b44bd5ba5a9d
+└─sdb2   8:18   0 223.1G  0 part            0x5001b44bd5ba5a9d
+sdc      8:32   0 111.8G  0 disk            0x5001b44c7d378ed0
+├─sdc1   8:33   0     2M  0 part            0x5001b44c7d378ed0
+├─sdc2   8:34   0     6G  0 part            0x5001b44c7d378ed0
+└─sdc3   8:35   0 105.8G  0 part            0x5001b44c7d378ed0
+sdd      8:48   0 223.6G  0 disk            0x5001b44bd5ba5baf
+├─sdd1   8:49   0   512M  0 part            0x5001b44bd5ba5baf
+└─sdd2   8:50   0 223.1G  0 part            0x5001b44bd5ba5baf
+sde      8:64   0 465.8G  0 disk            
+├─sde1   8:65   0     2M  0 part            
+├─sde2   8:66   0   128M  0 part            
+├─sde3   8:67   0     6G  0 part [SWAP]     
+└─sde4   8:68   0 459.6G  0 part            
+sdf      8:80   0 465.8G  0 disk            0x5000c5000996c8f6
+├─sdf1   8:81   0     2M  0 part            0x5000c5000996c8f6
+├─sdf2   8:82   0   128M  0 part            0x5000c5000996c8f6
+├─sdf3   8:83   0     6G  0 part            0x5000c5000996c8f6
+└─sdf4   8:84   0 459.6G  0 part            0x5000c5000996c8f6
+sdg      8:96   0 931.5G  0 disk            0x50014ee203dfbc8b
+└─sdg1   8:97   0 931.5G  0 part            0x50014ee203dfbc8b
+sdh      8:112  0 931.3G  0 disk            0x600050e0a5e0d600
+└─sdh1   8:113  0 931.3G  0 part            0x600050e0a5e0d600
+sdi      8:128  0 931.3G  0 disk            0x600050e0a5e0d600
+└─sdi1   8:129  0 931.3G  0 part            0x600050e0a5e0d600
+sdj      8:144  0 931.3G  0 disk            0x600050e0a5e0db00
+└─sdj1   8:145  0 931.3G  0 part            0x600050e0a5e0db00
+sdk      8:160  0 931.3G  0 disk            0x600050e0a5e0db00
+└─sdk1   8:161  0 931.3G  0 part            0x600050e0a5e0db00
+sdl      8:176  0 931.5G  0 disk            0x50024e9204a90d45
+└─sdl1   8:177  0 931.5G  0 part            0x50024e9204a90d45
+sdm      8:192  0 931.5G  0 disk            0x50024e9204a90d59
+└─sdm1   8:193  0 931.5G  0 part            0x50024e9204a90d59
+sdn      8:208  0 931.5G  0 disk            0x50024e9204a90b4a
+└─sdn1   8:209  0 931.5G  0 part            0x50024e9204a90b4a
+sdo      8:224  0 931.5G  0 disk            0x5000cca7dcd6f2c0

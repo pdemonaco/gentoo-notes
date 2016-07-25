@@ -1,0 +1,4 @@
+#!/bin/zsh
+# Configure /etc/rsyncd.conf
+/etc/init.d/rsyncd start
+rc-update add rsyncd default

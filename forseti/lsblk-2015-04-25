@@ -1,0 +1,16 @@
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT WWN
+sda      8:0    0 931.5G  0 disk            0x5000cca7dcd6f399
+sdb      8:16   0 931.5G  0 disk            0x5000cca7dcd6f2c0
+sdc      8:32   0 931.5G  0 disk            0x50024e9204a90b4a
+sdd      8:48   0 223.6G  0 disk            0x5001b44bd5ba5a9d
+sde      8:64   0 931.5G  0 disk            0x5000cca7dcd7123f
+sdf      8:80   0 931.5G  0 disk            0x50024e9204a90d59
+sdg      8:96   0 931.5G  0 disk            0x50024e9204a90d45
+sdh      8:112  0 223.6G  0 disk            0x5001b44bd5ba5baf
+sdi      8:128  0 465.8G  0 disk            
+sdj      8:144  0 465.8G  0 disk            0x5000c5000996c8f6
+sdk      8:160  0 931.5G  0 disk            0x50014ee203dfbc8b
+sdl      8:176  0 931.3G  0 disk            0x600050e0a5e0d600
+sdm      8:192  0 931.3G  0 disk            0x600050e0a5e0d600
+sdn      8:208  0 931.3G  0 disk            0x600050e0a5e0db00
+sdo      8:224  0 931.3G  0 disk            0x600050e0a5e0db00
