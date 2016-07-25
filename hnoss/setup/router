@@ -1,0 +1,21 @@
+#!/bin/zsh
+## Initial router configuration
+vim /etc/sysctl.conf
+
+# We have a dynamic external address
+#  so we need to set this kernel parameter
+net.ipv4.ip_dynaddr = 1
+
+# Enable forwarding
+net.ipv4.ip_forward = 1
+net.ipv4.conf.default.rp_filter = 1
+
+## Emerge iptables
+emerge -av iptables
+
+## Apply the filter rules
+./iptables-rules
+
+## Modify dhcpcd.conf so we use internal services
+echo "static domain_name_servers=172.24.142.2 8.8.8.8" >> /etc/dhcpcd.conf
+echo "static domain_name=demona.co" >> /etc/dhcpcd.conf

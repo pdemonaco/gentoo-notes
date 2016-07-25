@@ -1,0 +1,9 @@
+#!/bin/zsh
+# Install ifenslave
+emerge -av net-misc/ifenslave
+
+# Update /etc/conf.d/net
+config_enp1s0="null"
+config_enp3s0="null"
+mode_bond0="802.3ad"
+

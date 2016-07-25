@@ -1,0 +1,6 @@
+#!/bin/zsh
+
+# Install ddclient
+emerge -av net-dns/ddclient
+
+#

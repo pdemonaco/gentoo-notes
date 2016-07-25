@@ -1,0 +1,40 @@
+#!/bin/bash
+WAN=enp6s0
+LAN=enp4s0
+
+## Remove existing rules
+iptables -F
+iptables -t nat -F
+
+## Accept inbound and outbound packets - drop forward
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD DROP
+
+## First, accept "LAN" and loopback traffic
+iptables -I INPUT 1 -i ${LAN} -j ACCEPT
+iptables -I INPUT 1 -i lo -j ACCEPT
+# Block DNS & BOOTP on interfaces other than LAN
+iptables -A INPUT -p UDP --dport bootps ! -i ${LAN} -j REJECT
+iptables -A INPUT -p UDP --dport domain ! -i ${LAN} -j REJECT
+
+## SSH should be allowed - cause it's handy
+iptables -A INPUT -p TCP --dport ssh -i ${WAN} -j ACCEPT
+
+## Don't allow any packets to privileged ports on other interfaces
+iptables -A INPUT -p TCP ! -i ${LAN} -d 0/0 --dport 0:1023 -j DROP
+iptables -A INPUT -p UDP ! -i ${LAN} -d 0/0 --dport 0:1023 -j DROP
+
+## NAT rules
+# Drop local forward packets, accept inbound and outbound local packets
+iptables -I FORWARD -i ${LAN} -d 172.24.0.0/255.255.0.0 -j DROP 
+iptables -A FORWARD -i ${LAN} -s 172.24.0.0/255.255.0.0 -j ACCEPT
+iptables -A FORWARD -i ${WAN} -d 172.24.0.0/255.255.0.0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o ${WAN} -j MASQUERADE
+
+## There's some stuff we could do to route
+
+## Save our filters
+rc-service iptables save
+rc-update add iptables default
+

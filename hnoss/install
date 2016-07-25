@@ -1,0 +1,279 @@
+#!/usr/bin/ksh
+###### Disk ######
+###### Partitions ######
+# Do this on both disks 
+    parted -a optimal /dev/sda
+
+    ## Convert to mebibytes
+    unit mib
+
+    ## Set the partition type
+    mklabel gpt
+
+    ## uefi boot
+    mkpart primary 1 501
+    name 1 v0_grub_efi
+    set 1 boot on
+
+    ## Swap
+    mkpart primary 501 8693
+    name 2 v0_swap
+
+    ## ZFS Filesystem
+    mkpart primary 8693 111093
+    name 3 v0_rootfs
+    
+    ## Second disk
+    parted -a optimal /dev/sdb
+
+    ## Convert to mebibytes
+    unit mib
+
+    ## Set the partition type
+    mklabel gpt
+
+    ## uefi boot
+    mkpart primary 1 501
+    name 1 v1_grub_efi
+    set 1 boot on
+
+    ## Swap
+    mkpart primary 501 8693
+    name 2 v1_swap
+
+    ## ZFS Filesystem
+    mkpart primary 8693 111093
+    name 3 v1_rootfs
+
+###### File Systems ######
+# Make the boot file systems
+## EFI (Partition 1)
+    # Fat 32 named efi-boot
+    mkdosfs -F 32 -n v0-efi-boot /dev/sda1
+    # Fat 32 named efi-boot
+    mkdosfs -F 32 -n v1-efi-boot /dev/sdb1
+
+## Swaps (Partition 2)
+    # This is primarily a read-only file system
+    # so it makes sense to use ext2 here
+    mkswap -L v0_swap /dev/sda2
+    swapon /dev/sda2
+
+    # This is primarily a read-only file system
+    # so it makes sense to use ext2 here
+    mkswap -L v1_swap /dev/sdb2
+    swapon /dev/sdb2
+
+## Zpool (Partition 3)
+    # Create the actual pool
+    zpool create -o ashift=12 -o autoexpand=on -o feature@lz4_compress=enabled -O normalization=formD -m none -R /mnt/gentoo rpool mirror /dev/disk/by-id/wwn-0x5002538043584d30-part3 /dev/disk/by-id/wwn-0x5e83a97f442f4c59-part3
+
+###### Filesystems ######
+## root fs
+zfs create -o mountpoint=none rpool/ROOT
+zfs create -o mountpoint=/ -o compression=lz4 rpool/ROOT/gentoo
+
+## boot directory
+zfs create -o mountpoint=/boot -o canmount=noauto -o compression=lz4 rpool/ROOT/boot
+zpool set bootfs=rpool/ROOT/boot rpool
+
+## home
+zfs create -o mountpoint=/home -o compression=lz4 rpool/HOME
+
+## portage
+zfs create -o mountpoint=none rpool/GENTOO
+zfs create -o mountpoint=/usr/portage rpool/GENTOO/portage
+zfs create -o mountpoint=/usr/portage/distfiles rpool/GENTOO/distfiles
+
+## portage (build)
+# Extra settings like sync off & compression
+zfs create -o mountpoint=/var/tmp/portage -o compression=lz4 -o sync=disabled rpool/GENTOO/build-dir
+
+## packages
+zfs create -o mountpoint=/usr/portage/packages rpool/GENTOO/packages
+
+## ccache directory
+zfs create -o mountpoint=/var/tmp/ccache -o compression=lz4 rpool/GENTOO/ccache
+
+## create mountpoint for efi_boot
+mkdir -p /mnt/gentoo/boot/efi
+
+###### Installation Files ######
+## Time fix
+# Get the current UTC time & set it
+# Make sure that system time in the bios is UTC before doing this
+date MMDDhhmmCCYY.ss
+
+## If you've rebooted or whatever import your zpool
+zpool import -f -o cachefile= -R /mnt/gentoo rpool
+
+## Go to the mountpoint
+cd /mnt/gentoo
+
+## Download Sources
+wget ftp://gentoo.osuosl.org/pub/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-2*.bz2
+wget ftp://gentoo.osuosl.org/pub/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-2*.bz2.DIGESTS
+
+## Corruption check
+# Now that we have the sources, check them out
+grep $(openssl dgst -r -sha512 stage3-amd64-*.tar.bz2) stage3-amd64-*.tar.bz2.DIGESTS
+# Should see a line that matches
+
+## Extract the tarball
+tar xvjpf stage3-*.tar.bz2
+
+## Copy the zpool.cache into our new root
+mkdir -p /mnt/gentoo/etc/zfs/
+cp /etc/zfs/zpool.cache /mnt/gentoo/etc/zfs/zpool.cache
+
+##### Portage #####
+# Mix in some steps from chapters 5-6 of the gentoo handbook
+# Mainly setting up make.conf
+
+# Determine instruction set
+for FLAG in $(grep flags /proc/cpuinfo | awk '{FS = ":"} {print $2}' | tail -n 1); do grep -w "^"${FLAG} /usr/portage/profiles/use.desc; done
+
+# copied in my settings from forseti
+
+##### chroot #####
+## Mount filesystems
+mount -t proc proc /mnt/gentoo/proc
+mount --rbind /dev /mnt/gentoo/dev
+mount --rbind /sys /mnt/gentoo/sys
+
+## Unmount commands
+# umount -l /mnt/gentoo/proc /mnt/gentoo/dev /mnt/gentoo/sys
+
+# Copy in resolv.conf
+cp /etc/resolv.conf /mnt/gentoo/etc/resolv.conf
+
+## chroot
+chroot /mnt/gentoo /bin/bash
+env-update; source /etc/profile; export PS1="(chroot) $PS1"; cd
+
+## Configure Portage
+emerge-webrsync
+emerge --sync
+
+## Pick locales in /etc/locale.gen
+# Generate
+locale-gen
+# Set
+eselect locale list
+eselect locale set <num>
+
+## Configure your timezone
+echo "America/Detroit" > /etc/timezone
+emerge --config sys-libs/timezone-data
+
+## Get vim. damnit.
+emerge -av vim
+
+## Install sources & genkernel
+emerge -av sys-kernel/genkernel sys-kernel/gentoo-sources
+
+# Build initial kernel (required for checks in sys-kernel/spl and sys-fs/zfs)
+genkernel kernel --no-clean --no-mountboot
+
+## Setup ZFS
+# Ensure the appropriate exceptions are added to package.accept_keywords
+echo "sys-kernel/spl ~amd64" >> /etc/portage/package.accept_keywords
+echo "sys-fs/zfs-kmod ~amd64" >> /etc/portage/package.accept_keywords
+echo "sys-fs/zfs ~amd64" >> /etc/portage/package.accept_keywords
+
+# Emerge zfs
+emerge -av sys-fs/zfs
+
+# Create the builtin components
+env EXTRA_ECONF='--enable-linux-builtin' ebuild /usr/portage/sys-kernel/spl/spl-0.6.3.ebuild clean configure
+(cd /var/tmp/portage/sys-kernel/spl-0.6.3/work/spl-spl-0.6.3/ && ./copy-builtin /usr/src/linux)
+env EXTRA_ECONF='--with-spl=/usr/src/linux --enable-linux-builtin' ebuild /usr/portage/sys-fs/zfs-kmod/zfs-kmod-0.6.3.ebuild clean configure
+(cd /var/tmp/portage/sys-fs/zfs-kmod-0.6.3/work/zfs-zfs-0.6.3/ && ./copy-builtin /usr/src/linux)
+
+# Enable builtin zfs/spl in kernel
+<*> Solaris Porting Layer (SPL)
+File systems ---->
+  <*> ZFS filesystem support
+
+# Add zfs to the boot runlevel
+rc-update add zfs-zed boot
+rc-update add zfs-import boot
+rc-update add zfs-mount boot
+rc-update add zfs-share default
+
+# Remerge
+mkdir -p /etc/portage/profile
+echo "sys-fs/zfs -kernel-builtin" >> /etc/portage/profile/package.use.mask
+echo "sys-fs/zfs kernel-builtin" >> /etc/portage/package.use
+emerge -1av sys-fs/zfs
+
+##### Initramfs #####
+# Dracut 
+echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords
+emerge -av sys-boot/dracut
+# Copy in /etc/dracut.conf
+dracut --xz
+
+##### Bootloader #####
+## Ensure grub is built with zfs support
+echo "sys-boot/grub:2 libzfs" >> /etc/portage/package.use
+
+## Add exceptions for latest version
+echo "sys-boot/grub:2 ~amd64" >> /etc/portage/package.accept_keywords
+
+## Set the grub target
+echo "GRUB_PLATFORMS=\"efi-64\"" >> /etc/portage/make.conf
+
+## Emerge grub
+emerge -av sys-boot/grub:2
+
+## Add the following line to /etc/default/grub
+GRUB_CMDLINE_LINUX="zfs_force=1 vconsole.keymap=dvorak"
+
+## Make sure mtab exists
+touch /etc/mtab
+
+## Build the grub config file
+grub2-mkconfig -o /boot/grub/grub.cfg
+
+## Install
+grub2-install --target=x86_64-efi
+
+##### Other Stuff #####
+## Fix the default editor
+eselect editor list
+
+## Set root's password
+passwd
+
+## Correct keyboard
+vim /etc/conf.d/keymaps
+
+## fstab - correct
+
+##### Basic Wired Networking #####
+# Setup the device definition in rc's term
+cd /etc/init.d
+ln -s net.lo net.enp4s0
+
+# Update /etc/conf.d/net
+
+# Start the new service
+/etc/init.d/net.enp4s0 start
+# Add it to the default run-level
+rc-update add net.enp4s0 default
+
+## Things to emerge
+emerge -av app-admin/metalog
+emerge -av sys-process/fcron
+emerge -av net-misc/dhcpcd
+emerge -av app-misc/screen
+emerge -av app-admin/sudo
+emerge -av app-portage/pfl
+emerge -av net-analyzer/iptraf-ng
+emerge -av net-analyzer/ettercap
+emerge -av net-dns/bind-tools
+emerge -av net-firewall/iptables
+emerge -av net-analyzer/nmap
+emerge -av net-analyzer/traceroute
+emerge -av net-misc/netkit-telnetd

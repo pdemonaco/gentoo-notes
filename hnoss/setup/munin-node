@@ -1,0 +1,18 @@
+#!/bin/zsh
+## Install Munin Client
+echo "net-analyzer/munin minimal ipmi syslog" >> /etc/portage/package.use
+emerge -av net-analyzer/munin
+
+## Setup the node
+# Print out the default plugins
+sudo -u munin munin-node-configure --shell
+
+# If they look good, install
+sudo -u munin munin-node-configure --shell | /bin/bash
+
+# Updated munin config
+
+# Attempt to start it
+rc-service munin-node start
+rc-update add munin-node default
+
