@@ -27,7 +27,7 @@ Install network manager
 emerge -avtn net-misc/networkmanager gnome-extra/nm-applet
 ```
 
-Remove any existing network interface from current runlevels and add network manager.
+Remove any existing network interface from current run levels and add network manager.
 
 ```bash
 for LEVEL in $(eselect rc list | 
@@ -43,3 +43,7 @@ done
 eselect rc start NetworkManager
 eselect rc add NetworkManager default
 ```
+
+# Anyconnect VPN support
+
+Ensure Kernel support for CONFIG\_TUN is present
