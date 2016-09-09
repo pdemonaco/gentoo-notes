@@ -1,4 +1,4 @@
-# Prepare Installation
+# Installation
 
 Make sure the kernel settings are established as described by the gentoo 
 setup article.
@@ -44,6 +44,31 @@ eselect rc start NetworkManager
 eselect rc add NetworkManager default
 ```
 
+Add the following line to `/etc/dhcp/dhclient.conf` so that you actually 
+transmit a hostname when registering a DHCP address. 
+
+```bash
+send host-name $(hostname);
+```
+
+# Privileges 
+
+Assuming you have a working install you're probably going to need to include 
+the dbus config settings described in the 
+[gentoo article](https://wiki.gentoo.org/wiki/NetworkManager#Fixing_nm-applet_insufficient_privileges). 
+
+Here's the code I needed to add:
+
+```bash
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 && subject.isInGroup("plugdev")) {
+        return polkit.Result.YES;
+    }
+});
+```
+
 # Anyconnect VPN support
 
 Ensure Kernel support for CONFIG\_TUN is present
+
+# 
