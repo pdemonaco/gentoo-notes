@@ -31,7 +31,7 @@ genkernel --no-clean --no-mountboot --keymap --zfs --compress-initramfs \
     --compress-initramfs-type=xz initramfs
 
 # Regenerate grub.cfg
-cd /boot; grub2-mkconfig -o grub/grub.cfg
+cd /boot; grub-mkconfig -o grub/grub.cfg
 # Note that this is only necessary until gentoo grub 
 # can appropriately read the zfs on-disk format again
 POOL=$(zfs list | awk '$5 ~ /^\/$/ { split( $1, name, "/" ); print name[1] }')
