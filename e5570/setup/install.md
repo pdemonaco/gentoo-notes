@@ -689,7 +689,7 @@ Apply the grub directly to the hard disk.
 
 ```bash
 mount /boot/efi
-grub2-install --target=x86_64-efi
+grub-install --target=x86_64-efi
 ```
 
 ![Successful Grub Install](img/grub-install.png)
@@ -698,16 +698,20 @@ Generate the grub config.
 
 ```bash
 cd /boot
-grub2-mkconfig -o grub/grub.cfg
+grub-mkconfig -o grub/grub.cfg
 ```
 
+## Exit the Install Environment
 
-#----- Unmount File Systems -------------------------------
-#-- Virtual File Systems
+Unmount virtual file systems
+
+```bash
 umount -l /mnt/gentoo/proc /mnt/gentoo/dev /mnt/gentoo/sys
+```
 
-#-- Physical FS
+Unmount the standard file systems
+
+```bash
 umount /mnt/gentoo/boot
 umount /mnt/gentoo
-
-#----- Create Domain Config -------------------------------
+```
