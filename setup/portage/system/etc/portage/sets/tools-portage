@@ -7,3 +7,5 @@ app-portage/portage-utils
 app-portage/euses
 app-portage/elogv
 app-portage/genlop
+# helps rebuild live (9999) packages
+app-portage/smart-live-rebuild
