@@ -9,3 +9,5 @@ app-portage/elogv
 app-portage/genlop
 # helps rebuild live (9999) packages
 app-portage/smart-live-rebuild
+# Repoman got removed post 2.3 portage...
+app-portage/repoman
