@@ -621,7 +621,7 @@ to the appropriate groups.
 
 ```bash
 USER="phil"
-GROUPS="audio,video,users,wheel"
+GROUPS="audio,video,usb,users,wheel,cdrom"
 useradd -m -G "${GROUPS}" -s /bin/zsh "${USER}"
 passwd "${USER}"
 ```
