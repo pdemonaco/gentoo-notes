@@ -1,0 +1,10 @@
+# Alpine Linux PV DomU
+
+# Installation Kernel Path
+kernel  = "/xen/boot/alpine-xen-3.5.0-x86_64/vmlinuz-grsec"
+ramdisk = "/xen/boot/alpine-xen-3.5.0-x86_64/initramfs-grsec"
+extra="alpine_dev=xvdc:iso9660 modules=loop,squashfs,sd-mod,usb-storage console=hvc0"
+
+# Disk Configuration
+disk = [
+        'format
