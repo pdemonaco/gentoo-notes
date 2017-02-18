@@ -48,8 +48,9 @@ Add the following line to `/etc/dhcp/dhclient.conf` so that you actually
 transmit a hostname when registering a DHCP address. 
 
 ```bash
-send host-name $(hostname);
+send host-name "<hostname>";
 ```
+*Note that this must be your literal text hostname. Sub-shells are not evaluated here*
 
 # Privileges 
 
