@@ -1,13 +1,14 @@
 #!/bin/bash
 # Quick and dirty script to connect to other monitors at work
-
+set -x
 # Determine location
-SCRIPT_DIR=$(dirname $0)
+SCRIPT_DIR=$(dirname "$0")
 
 # Constants
 SOURCE="${SCRIPT_DIR}/display_directives"
 DOCK_FILE="/tmp/dock_mons"
 CMD_FILE="/tmp/dock_cmds"
+PRIMARY="eDP-1"
 
 # Parameters
 MODE=$1
@@ -41,7 +42,7 @@ do
     NAME=$(echo "${ENTRY}" | awk 'BEGIN { FS=":" } { printf "%s", $2 }' | xxd -r -p | sed 's/ //g')
     OUTPUT=$(echo "${ENTRY}" | awk 'BEGIN { FS=":" } { printf "%s", $1 }')
 
-    if [[ ${OUTPUT} =~ 'eDP1' ]]; then
+    if [[ ${OUTPUT} =~ ${PRIMARY} ]]; then
         NAME="integrated"
     fi
 
@@ -92,3 +93,8 @@ unset IFS
 ${CMD_FILE}
 
 rm "${DOCK_FILE}"
+
+# Attempt to reload backgrounds
+sleep 1
+nitrogen --restore
+
