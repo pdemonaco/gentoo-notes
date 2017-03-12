@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick and dirty script to connect to other monitors at work
-set -x
+
 # Determine location
 SCRIPT_DIR=$(dirname "$0")
 
