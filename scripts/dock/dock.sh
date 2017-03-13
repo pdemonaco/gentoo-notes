@@ -92,7 +92,7 @@ unset IFS
 
 ${CMD_FILE}
 
-rm "${DOCK_FILE}"
+rm "${DOCK_FILE}" "${CMD_FILE}"
 
 # Attempt to reload backgrounds
 sleep 1
