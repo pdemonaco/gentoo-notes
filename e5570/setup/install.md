@@ -371,6 +371,34 @@ USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller | xhci
 Intel Corporation Device 1903 | int3403_thermal | CONFIG_INT340X_THERMAL | Non-CPU based thermal sensors and control
 VGA compatible controller: Intel Corporation Device 191b | i915 | CONFIG_DRM_I915 | Integrated Graphics
 
+### Intel HD Graphics
+
+1. Ensure sys-kernel/linux-firmware is installed.
+2. Use the following command to determine which firmware file is needed:
+
+    ```bash
+    grep -B 3 'MODULE_FIRMWARE.*SKL' drivers/gpu/drm/i915/intel_guc_loader.c \
+        drivers/gpu/drm/i915/intel_csr.c
+    ```
+3. Set the following kernel flags.
+    
+    ```bash
+    CONFIG_AGP=y
+    CONFIG_AGP_INTEL=y
+    CONFIG_DRM=y
+    CONFIG_DRM_FBDEV_EMULATION=y
+    CONFIG_DRM_I915=y
+    CONFIG_EXTRA_FIRMWARE=i915/skl_dmc_ver1.bin
+    CONFIG_EXTRA_FIRMWARE_DIR=/lib/firmware
+    ```
+4. Update make.conf with the appropriate video cards settings.
+
+    ```bash
+    VIDEO_CARDS="intel i965"
+    ```
+
+Further details can be found [here](https://wiki.gentoo.org/wiki/Intel).
+
 ### Crypt support
 
 DM_CRYPT
