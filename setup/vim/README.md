@@ -5,7 +5,7 @@ https://github.com/Valloric/YouCompleteMe
 
 ## Prep the build environment
 
-Then you'll need some utilites to build. I've installed these natively in my system, however, it may be prudent to leave them out of world.
+Then you'll need some utilities to build. I've installed these natively in my system, however, it may be prudent to leave them out of world.
 
 
 ```bash
