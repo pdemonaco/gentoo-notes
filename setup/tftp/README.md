@@ -15,7 +15,7 @@
 3. Provide basic configuration via the `/etc/conf.d/in.tftpd` file.
 
     ```bash
-    INTFTPD_PATH="/var/tftp/"
+    INTFTPD_PATH="/tftp/"
     INTFTPD_OPTS="-R 4096:32767 -s ${INTFTPD_PATH}"
     ```
 4. Copy your file or files into the tftp directory and start the daemon
