@@ -12,8 +12,9 @@ You'll need to have a working local tftp server for this to work. The readme in 
 4. Perform a safe download of the specified files.
 
     ```bash
-    archive download-sw /safe tftp:/
+    archive download-sw /safe tftp://<ip>/<image-file>
     ```
+    *Note that you do not need to specify `/tftp/` as it is the root of the mount*
 
 This document primarily references upgrading to IOS 12.2(55)SE. Release notes can be found [here](http://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst3750/software/release/12-2_55_se/release/notes/OL23054.html#21027)
 
