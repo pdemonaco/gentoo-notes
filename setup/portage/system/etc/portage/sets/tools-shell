@@ -6,4 +6,5 @@ app-shells/zsh-completions
 app-text/dos2unix
 app-text/tree
 app-misc/screen
+app-misc/tmux
 app-arch/p7zip
