@@ -1,62 +1,62 @@
 # Installation
 
-Make sure the kernel settings are established as described by the gentoo 
-setup article.
+1. Make sure the kernel settings are established as described by the [gentoo 
+setup article](https://wiki.gentoo.org/wiki/NetworkManager#Kernel).
 
-https://wiki.gentoo.org/wiki/NetworkManager
+    ```bash
+    cd /etc
+    echo "net-misc/networkmanager ~amd64" >> /etc/portage/package.accept_keywords/networkmanager
+    git add /etc/portage/package.accept_keywords/networkmanager
+    echo "net-misc/networkmanager resolvconf" >> /etc/portage/package.use/networkmanager
+    echo "app-crypt/pinentry gnome-keyring" >> /etc/portage/package.use/networkmanager
+    git add /etc/portage/package.use/networkmanager
+    ```
 
-```bash
-cd /etc
-echo "net-misc/networkmanager ~amd64" >> /etc/portage/package.accept_keywords/networkmanager
-git add /etc/portage/package.accept_keywords/networkmanager
-echo "net-misc/networkmanager resolvconf" >> /etc/portage/package.use/networkmanager
-echo "app-crypt/pinentry gnome-keyring" >> /etc/portage/package.use/networkmanager
-git add /etc/portage/package.use/networkmanager
-```
-
-Add yourself to plugdev so that network changes can be made without becoming
+2. Add yourself to plugdev so that network changes can be made without becoming
 superuser
 
-```bash
-usermod -a -G plugdev phil
-```
+    ```bash
+    usermod -a -G plugdev phil
+    ```
 
-Install network manager 
+3. Install network manager 
 
-```bash
-emerge -avtn net-misc/networkmanager gnome-extra/nm-applet
-```
+    ```bash
+    emerge -avtn net-misc/networkmanager gnome-extra/nm-applet
+    ```
 
-Remove any existing network interface from current run levels and add network manager.
+4. Remove any existing network interface from current run levels and add network manager.
 
-```bash
-for LEVEL in $(eselect rc list | 
-    awk '$0 ~ "^  [[:alpha:]]+" { if( $2 ~ "[[:alpha:]]+") print $2; }' 
-    | sort | uniq)
-do
-    for SERVICE in $(eselect rc show 
-        "${LEVEL}" | awk '/^  net\./ {print $1}')
+    ```bash
+    for LEVEL in $(eselect rc list | 
+        awk '$0 ~ "^  [[:alpha:]]+" { if( $2 ~ "[[:alpha:]]+") print $2; }' 
+        | sort | uniq)
     do
-        eselect rc delete "${SERVICE}" "${LEVEL}"
+        for SERVICE in $(eselect rc show 
+            "${LEVEL}" | awk '/^  net\./ {print $1}')
+        do
+            eselect rc delete "${SERVICE}" "${LEVEL}"
+        done
     done
-done
-eselect rc start NetworkManager
-eselect rc add NetworkManager default
-```
+    eselect rc start NetworkManager
+    eselect rc add NetworkManager default
+    ```
 
-Add the following line to `/etc/dhcp/dhclient.conf` so that you actually 
+5. Add the following line to `/etc/dhcp/dhclient.conf` so that you actually 
 transmit a hostname when registering a DHCP address. 
 
-```bash
-send host-name "<hostname>";
-```
-*Note that this must be your literal text hostname. Sub-shells are not evaluated here*
+    ```bash
+    send host-name "<hostname>";
+    ```
+    *Note that this must be your literal text hostname. Sub-shells are not evaluated here*
 
-# Privileges 
+# Dbus
+
+
+## Privileges 
 
 Assuming you have a working install you're probably going to need to include 
-the dbus config settings described in the 
-[gentoo article](https://wiki.gentoo.org/wiki/NetworkManager#Fixing_nm-applet_insufficient_privileges). 
+the dbus config settings described in the [gentoo article](https://wiki.gentoo.org/wiki/NetworkManager#Fixing_nm-applet_insufficient_privileges). 
 
 Here's the code I needed to add:
 
@@ -67,9 +67,29 @@ polkit.addRule(function(action, subject) {
     }
 });
 ```
+# Launch
+
+Make sure to do this __before__ any other processes which depend on dbus are launched. gnome-keyring for example.
+
+Ensure the process which starts your X environment doesn't leave you with multiple instances of dbus. This [article](http://www.nurdletech.com/linux-notes/agents/keyring.html) does a good job of explaining what you need to do. 
+
+At a high level.
+
+1. Start dbus only once per session using the following check.
+
+    ```bash
+    if [[ -z "${DBUS_SESSION_BUS_ADDRESS}" ]];
+    then
+        eval $(dbus-launch --sh-syntax --exit-with-session)
+    fi
+    ```
+2. Verify that only one is running. Checking processes should yield something like the following.
+
+    ![Only one forked dbus](img/only-one-dbus.png)
+
+
 
 # Anyconnect VPN support
 
 Ensure Kernel support for CONFIG\_TUN is present
 
-# 
