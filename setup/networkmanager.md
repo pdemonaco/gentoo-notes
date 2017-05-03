@@ -71,7 +71,7 @@ Here's the code I needed to add:
         if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 && subject.isInGroup("plugdev")) {
             return polkit.Result.YES;
         }
-    }); > /etc/polkit-1/rules.d/50-org.freedesktop.NetworkManager.rules
+    });' > /etc/polkit-1/rules.d/50-org.freedesktop.NetworkManager.rules
     ```
 3. Add it to your git repo if you have one for etc.
 
@@ -84,9 +84,7 @@ Here's the code I needed to add:
 
 Make sure to do this __before__ any other processes which depend on dbus are launched. gnome-keyring for example.
 
-Ensure the process which starts your X environment doesn't leave you with multiple instances of dbus. This [article](http://www.nurdletech.com/linux-notes/agents/keyring.html) does a good job of explaining what you need to do. 
-
-At a high level.
+Ensure the process which starts your X environment doesn't leave you with multiple instances of dbus. This [article](http://www.nurdletech.com/linux-notes/agents/keyring.html) does a good job of explaining what you need to do at a high level.
 
 1. Start dbus only once per session using the following check.
 
