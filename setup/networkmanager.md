@@ -1,7 +1,6 @@
 # Installation
 
-1. Make sure the kernel settings are established as described by the [gentoo 
-setup article](https://wiki.gentoo.org/wiki/NetworkManager#Kernel).
+1. Make sure the kernel settings are established as described by the [gentoo setup article](https://wiki.gentoo.org/wiki/NetworkManager#Kernel).
 
     ```bash
     cd /etc
@@ -12,8 +11,7 @@ setup article](https://wiki.gentoo.org/wiki/NetworkManager#Kernel).
     git add /etc/portage/package.use/networkmanager
     ```
 
-2. Add yourself to plugdev so that network changes can be made without becoming
-superuser
+2. Add yourself to plugdev so that network changes can be made without becoming superuser.
 
     ```bash
     usermod -a -G plugdev phil
@@ -46,27 +44,42 @@ superuser
 transmit a hostname when registering a DHCP address. 
 
     ```bash
-    send host-name "<hostname>";
+    HOSTNAME=$(hostname)
+    cd /etc
+    echo "send host-name \"${HOSTNAME}\";" >> /etc/dhcp/dhclient.conf
+    git add /etc/dhcp/dhclient.conf
     ```
     *Note that this must be your literal text hostname. Sub-shells are not evaluated here*
 
 # Dbus
 
-
 ## Privileges 
 
-Assuming you have a working install you're probably going to need to include 
-the dbus config settings described in the [gentoo article](https://wiki.gentoo.org/wiki/NetworkManager#Fixing_nm-applet_insufficient_privileges). 
+Assuming you have a working install you're probably going to need to include the dbus config settings described in the [gentoo article](https://wiki.gentoo.org/wiki/NetworkManager#Fixing_nm-applet_insufficient_privileges). 
 
 Here's the code I needed to add:
 
-```bash
-polkit.addRule(function(action, subject) {
-    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 && subject.isInGroup("plugdev")) {
-        return polkit.Result.YES;
-    }
-});
-```
+1. Create the following file to contain the rules.
+
+    ```bash
+    touch /etc/polkit-1/rules.d/50-org.freedesktop.NetworkManager.rules
+    ```
+2. Populate it with the appropriate configuration data.
+    
+    ```bash
+    echo 'polkit.addRule(function(action, subject) {
+        if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 && subject.isInGroup("plugdev")) {
+            return polkit.Result.YES;
+        }
+    }); > /etc/polkit-1/rules.d/50-org.freedesktop.NetworkManager.rules
+    ```
+3. Add it to your git repo if you have one for etc.
+
+    ```bash
+    cd /etc/
+    git add /etc/polkit-1/rules.d/50-org.freedesktop.NetworkManager.rules
+    ```
+
 # Launch
 
 Make sure to do this __before__ any other processes which depend on dbus are launched. gnome-keyring for example.
@@ -87,9 +100,7 @@ At a high level.
 
     ![Only one forked dbus](img/only-one-dbus.png)
 
-
-
 # Anyconnect VPN support
 
-Ensure Kernel support for CONFIG\_TUN is present
+Ensure Kernel support for `CONFIG_TUN` is present
 
