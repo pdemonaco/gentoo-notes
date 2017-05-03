@@ -26,12 +26,11 @@
 4. Remove any existing network interface from current run levels and add network manager.
 
     ```bash
-    for LEVEL in $(eselect rc list | 
-        awk '$0 ~ "^  [[:alpha:]]+" { if( $2 ~ "[[:alpha:]]+") print $2; }' 
-        | sort | uniq)
+    for LEVEL in $( eselect rc list | awk '$0 ~ "^  [[:alpha:]]+" \
+        { if( $2 ~ "[[:alpha:]]+") print $2; }' | sort | uniq )
     do
-        for SERVICE in $(eselect rc show 
-            "${LEVEL}" | awk '/^  net\./ {print $1}')
+        for SERVICE in $(eselect rc show "${LEVEL}" \
+            | awk '/^  net\./ {print $1}')
         do
             eselect rc delete "${SERVICE}" "${LEVEL}"
         done
