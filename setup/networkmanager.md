@@ -48,7 +48,7 @@ transmit a hostname when registering a DHCP address.
     echo "send host-name \"${HOSTNAME}\";" >> /etc/dhcp/dhclient.conf
     git add /etc/dhcp/dhclient.conf
     ```
-    *Note that this must be your literal text hostname. Sub-shells are not evaluated here*
+    *Note that this must be your hostname as a text representation. Sub-shells are not evaluated here*
 
 # Dbus
 
