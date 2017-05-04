@@ -35,13 +35,15 @@ emerge -avtn gnome-keyring seahorse
 
 # Initialization
 
+My installs tend to be fairly light so I usually start X with `startx`. The xinitrc section deals with this process.
+
 ## .xinitrc
 
-My installs tend to be fairly light so I usually start X with `startx`. The following statement or something similar should be in your `~/.xinitrc` file.
+ The following statement or something similar should be in your `~/.xinitrc` file.
 
 ```bash
 # Get gnome-keyring's variables exported
 export $(gnome-keyring-daemon --start --components=pkcs11,secrets,ssh,gpg)
 ```
 
-Make sure this is done __AFTER__ dbus is started for the session!!
+Make sure this is done __AFTER__ dbus is started for the session!
