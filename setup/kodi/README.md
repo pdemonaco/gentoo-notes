@@ -65,9 +65,11 @@
 3. Add the following line to the end of `/etc/inittab` to trigger the auto-start of kodi.
 
     ```bash
+    cd /etc/
     echo '
     # Autostart kodi
-    c9:2345:respawn:/sbin/mingetty --autologin kodi tty9'
+    c9:2345:respawn:/sbin/mingetty --autologin kodi tty9' > /etc/inittab
+    git add /etc/inittab
     ```
 
 
