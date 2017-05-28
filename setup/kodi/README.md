@@ -72,4 +72,37 @@
     git add /etc/inittab
     ```
 
+# Configure NFS Mounts
+
+1. Ensure the NFS client daemon is installed.
+
+    ```bash
+    emerge -avt net-fs/nfs-utils
+    ```
+2. Add the nfsclient to the default runlevel.
+
+    ```bash
+    eselect rc add nfsclient default
+    eselect rc start nfsclient
+    ```
+3. Create local directories for the mount points
+
+    ```bash
+    mkdir -p /mnt/media/movies
+    mkdir -p /mnt/media/music
+    mkdir -p /mnt/media/tv-series
+    ```
+4. Configure the mount points in `/etc/fstab`
+
+    ```config
+    nas-nfs.demona.co:/mnt/media-pl/movies      /mnt/media/movies       nfs     rw,_netdev,proto=tcp    0 0
+    nas-nfs.demona.co:/mnt/media-pl/tv-series   /mnt/media/tv-series    nfs     rw,_netdev,proto=tcp    0 0
+    nas-nfs.demona.co:/mnt/media-pl/music       /mnt/media/music        nfs     rw,_netdev,proto=tcp    0 0
+    ```
+5. Add the netmount daemon to default as well so it can handle mounts at boot.
+
+    ```bash
+    # Note that this may already be in place
+    eselect rc add netmount default
+    ```
 
