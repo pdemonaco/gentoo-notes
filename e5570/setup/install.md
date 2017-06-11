@@ -371,33 +371,31 @@ USB controller: Intel Corporation Sunrise Point-H USB 3.0 xHCI Controller | xhci
 Intel Corporation Device 1903 | int3403_thermal | CONFIG_INT340X_THERMAL | Non-CPU based thermal sensors and control
 VGA compatible controller: Intel Corporation Device 191b | i915 | CONFIG_DRM_I915 | Integrated Graphics
 
-### Intel HD Graphics
+Many of these should be modules. Once selected they need to be added to `/etc/conf.d/modules` via the following script:
 
-1. Ensure sys-kernel/linux-firmware is installed.
-2. Use the following command to determine which firmware file is needed:
+```bash
+cd /etc
+CONF="/etc/conf.d/modules"
+MODULES="iwlmwm rstx_pci i2c_i801 shpchp mei int3403_thermal"
 
-    ```bash
-    grep -B 3 'MODULE_FIRMWARE.*SKL' drivers/gpu/drm/i915/intel_guc_loader.c \
-        drivers/gpu/drm/i915/intel_csr.c
-    ```
-3. Set the following kernel flags.
-    
-    ```bash
-    CONFIG_AGP=y
-    CONFIG_AGP_INTEL=y
-    CONFIG_DRM=y
-    CONFIG_DRM_FBDEV_EMULATION=y
-    CONFIG_DRM_I915=y
-    CONFIG_EXTRA_FIRMWARE=i915/skl_dmc_ver1.bin
-    CONFIG_EXTRA_FIRMWARE_DIR=/lib/firmware
-    ```
-4. Update make.conf with the appropriate video cards settings.
+for MODULE in MODULES
+do
+  (grep "${MODULE}" "${CONF}")
+  RC=$?
+  if [ "${RC}" -ne 0 ]
+  then
+    sed -i -r 's/^(modules="[[:alnum:]_ ]+)/\1 '"${MODULE}"'/' "${CONF}"
+  fi
+done
+git add "/etc/conf.d/modules"
+```
 
-    ```bash
-    VIDEO_CARDS="intel i965"
-    ```
+### Graphics
 
-Further details can be found [here](https://wiki.gentoo.org/wiki/Intel).
+These links may not work in this first push.
+
+* [Intel HD Graphics](intel_hd_graphics.md)
+* [Radeon](radeon.md)
 
 ### Crypt support
 
@@ -405,21 +403,10 @@ DM_CRYPT
 
 Also, potentially add a bunch of different cipher and compression algorithms. I added everything.
 
-### Setup kernel module load
-iwlmwm
-rstx_pci
-shpchp
-mei
-int3403_thermal
-
 ### Sound settings
 
 CONFIG_SND_HDA_PREALLOC_SIZE - set to 2048
 
-### Graphics 
-
-https://wiki.gentoo.org/wiki/Amdgpu
-https://wiki.gentoo.org/wiki/Radeon
 
 ### Compile
 
