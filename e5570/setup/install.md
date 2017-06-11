@@ -376,9 +376,9 @@ Many of these should be modules. Once selected they need to be added to `/etc/co
 ```bash
 cd /etc
 CONF="/etc/conf.d/modules"
-MODULES="iwlmwm rstx_pci i2c_i801 shpchp mei int3403_thermal"
+MODULES="iwlmwm rstx_pci i2c_i801 shpchp mei int3403_thermal snd-hda-intel"
 
-for MODULE in MODULES
+for MODULE in ${MODULES}
 do
   (grep "${MODULE}" "${CONF}")
   RC=$?
