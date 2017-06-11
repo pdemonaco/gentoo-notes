@@ -62,6 +62,21 @@
     sed -i "s/ZFS=\//ZFS=${POOL}\//g" "/boot/grub/grub.cfg"
     ```
 
+# Remove old Kernel
+
+1. Run the deep clean procedure.
+
+    ```bash
+    emerge -avc gentoo-sources
+    ```
+2. Remove old files
+
+    ```bash
+    KERNEL_VERSION="4.4.52-gentoo"
+    rm -r "/usr/src/linux-${KERNEL_VERSION}"
+    rm -r "/lib/modules/${KERNEL_VERSION}"
+    ```
+
 # Additional Detail
 
 * [Kernel Upgrade](https://wiki.gentoo.org/wiki/Kernel/Upgrade)
