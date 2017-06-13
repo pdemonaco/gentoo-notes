@@ -331,6 +331,7 @@ LEGACY_VSYSCALL_NONE | Investigate possible removal of legacy calls | N/A
 CPU_FREQ_DEFAULT_GOV_USERSPACE | Might need some handling for CPU freq | N/A
 X86_INTEL_PSTATE | Probably needed for this one | N/A
 CONFIG_NET_IPIP | Read more about this? Could be interesting for wireless roaming | N/A
+CONFIG_TUN | This will be needed for VPN!! | N/A
 
 ### MCE Log
 
