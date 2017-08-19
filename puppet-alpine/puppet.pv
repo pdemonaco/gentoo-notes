@@ -1,0 +1,27 @@
+# Alpine Linux PV DomU
+
+# Installation Kernel Path
+kernel  = "/xen/boot/alpine-xen-3.6.2-x86_64/vmlinuz-hardened"
+ramdisk = "/xen/boot/alpine-xen-3.6.2-x86_64/initramfs-hardened"
+extra="modules=sd-mod,usb-storage,ext4,squashfs console=hvc0 root=/dev/xvda3"
+
+# ISO Boot Parameters
+extra="alpine_dev=xvdc:iso9660 modules=loop,squashfs,sd-mod,usb-storage console=hvc0"
+
+# Disk Configuration
+disk = [
+        'format=raw, vdev=xvda, access=w, target=/dev/zvol/xen-pl/XEN/vdisk/puppet00',
+        'format=raw, vdev=xvdc, access=r, devtype=cdrom, target=/xen/image/alpine-xen-3.6.2-x86_64.iso'
+        ]
+
+
+# Network Configuration
+vif = [
+        'mac=5a:91:92:06:55:e6,bridge=xenbr38'
+        ]
+
+# DomU settings
+memory      = 512
+name        = "puppet00"
+vcpus       = 2
+maxvcpus    = 2

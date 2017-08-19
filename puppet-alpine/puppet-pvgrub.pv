@@ -1,0 +1,22 @@
+# Alpine Linux PV DomU
+
+# ISO Boot Parameters
+extra="alpine_dev=xvdc:iso9660 modules=loop,squashfs,sd-mod,usb-storage console=hvc0"
+
+# Disk Configuration
+disk = [
+        'format=raw, vdev=xvda, access=w, target=/dev/zvol/xen-pl/XEN/vdisk/puppet00',
+        ]
+
+kernel  = "/xen/boot/grub-x86-64-xen.bin"
+
+# Network Configuration
+vif = [
+        'mac=5a:91:92:06:55:e6,bridge=xenbr38'
+        ]
+
+# DomU settings
+memory      = 512
+name        = "puppet00"
+vcpus       = 2
+maxvcpus    = 2
