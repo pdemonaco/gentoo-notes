@@ -8,14 +8,14 @@
     ssh odin.demona.co
     sudo -i
     cd /xen/image/
-    wget https://fr.alpinelinux.org/alpine/v3.5/releases/x86_64/alpine-xen-3.5.0-x86_64.iso
+    wget http://dl-cdn.alpinelinux.org/alpine/v3.6/releases/x86_64/alpine-xen-3.6.2-x86_64.iso
     ```
 
     Note that the latest version may be located [here](https://www.alpinelinux.org/downloads/)
 2. Mount the image somewhere temporarily to extract the kernel and initramfs.
 
     ```bash
-    VERSION=alpine-xen-3.5.0-x86_64
+    VERSION=alpine-xen-3.6.2-x86_64
     ISO="/xen/image/${VERSION}.iso"
     MNT="/tmp/${VERSION}"
     BOOT="/xen/boot/${VERSION}/"
