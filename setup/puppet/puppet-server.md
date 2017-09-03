@@ -29,6 +29,28 @@
     ```bash
     emerge -avt app-admin/puppetserver
     ```
+3. Create a new disk for the code subdirectories. No real need to do this other than the fact that we already have a git repository at `/etc` and `/etc/puppetlabs/code` is going to have subdirectories that are repositories.
+
+    ```bash
+    # Partition the disk 
+    DISK="/dev/xvdb"
+    parted -a optimal "${DISK}"
+    mklabel gpt
+    unit mib
+    mkpart 1 1 -1
+    name 1 puppet-code
+    quit
+
+    # Format the disk
+    mkfs.ext4 "${DISK}1"
+
+    # Update /etc/fstab so it actually gets mounted
+    cd /etc/
+    echo '${DISK}1              /etc/puppetlabs/code            ext4            noatime         0 1' >> /etc/fstab
+    git add fstab
+    cd -
+    ```
+
 3. Add puppetserver to the default run level and start it up.
 
     ```bash
