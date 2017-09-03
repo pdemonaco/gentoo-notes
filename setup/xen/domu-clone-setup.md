@@ -148,4 +148,3 @@ Shouldn't always be necessary as we may have it automatically included in the fu
     git push --all
     ```
 3. Add the layman overlay as described [here](https://github.com/pdemonaco/overlay).
-4. 
