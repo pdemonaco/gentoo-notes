@@ -17,7 +17,7 @@
 3. Once the new kernel is ready to go copy the config to `/etc/kernels` and record it in git.
 
     ```bash
-    KERNEL_VERSION="4.9.34-gentoo"
+    KERNEL_VERSION="4.9.49-gentoo-r1"
     BUILD=00
     cp "/usr/src/linux/.config" "/etc/kernels/kernel-config-${KERNEL_VERSION}-${BUILD}"
     cd /etc/
@@ -67,7 +67,7 @@
 1. Run the deep clean procedure.
 
     ```bash
-    emerge -avc gentoo-sources
+    emerge -avc
     ```
 2. Remove old files
 
