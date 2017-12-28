@@ -36,7 +36,7 @@ to the latest version via `VundleInstall` or `VundleUpdate`
 Switch to the installation directory and begin the install!
 
 ```bash
-cd "~/.vim/bundle/YouCompleteMe/
+cd ~/.vim/bundle/YouCompleteMe/
 python install.py --clang-completer --system-libclang
 ```
 
