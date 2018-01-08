@@ -13,8 +13,9 @@ RAW_MAC=$(xxd -p -l 6 /dev/urandom \
 SEP_MAC=$(echo "${RAW_MAC}" | sed 's/.\{2\}/&:/g')
 SEP_MAC="${SEP_MAC%?}"
 
-SEP_MAC_2=$(echo "${RAW_MAC}" | sed 's/.\{4\}/&./g')
+MAC_CISCO=$(echo "${RAW_MAC}" | sed 's/.\{4\}/&./g')
+MAC_CISCO="${MAC_CISCO%?}"
 
 echo $RAW_MAC
 echo $SEP_MAC
-echo $SEP_MAC_2
+echo $MAC_CISCO
