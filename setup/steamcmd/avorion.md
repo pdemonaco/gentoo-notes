@@ -11,11 +11,11 @@ Based on [this guide](https://avorion.gamepedia.com/Setting_up_a_server#Setting_
 2. Generate a galaxy. You'll need your [steam ID](http://csgopedia.com/steam-id-finder/).
 
     ```bash
-    INST_DIR="/opt/steamcmd/avorion/"
     USER="steamcmd"
 
+    ADMINS="<test-value>"
     GALAXYNAME="test-galaxy" 
-    ADMINS=""
+    INST_DIR="/opt/steamcmd/avorion"
     GALAXY_PATH="${INST_DIR}/galaxies/"
     
     runuser -l "${USER}" -c "mkdir -p ${GALAXY_PATH}" -s /bin/bash
@@ -54,10 +54,10 @@ Based on [this guide](https://avorion.gamepedia.com/Setting_up_a_server#Setting_
 3. Generate a new server file.
 
     ```bash
-    INST_DIR="/opt/steamcmd/avorion/"
     USER="steamcmd"
 
-    ADMINS=""
+    ADMINS="<fill in>"
+    INST_DIR="/opt/steamcmd/avorion"
     GALAXYNAME="moral-bankruptcy" 
     GALAXY_PATH="${INST_DIR}/galaxies/"
     
