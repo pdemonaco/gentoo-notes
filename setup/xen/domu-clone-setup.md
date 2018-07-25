@@ -46,6 +46,7 @@ DOMU=new-domu
     }')
     SEP_MAC=$(echo "${RAW_MAC}" | sed 's/.\{2\}/&:/g')
     SEP_MAC="${SEP_MAC%?}"
+    echo "\n${RAW_MAC}\n${SEP_MAC}\n"
     sed -i -r 's/mac[=][0-9a-f:]+,/mac='"${SEP_MAC}"',/' "${DOMU}.pv"
     ```
 6. Update the bridge interface to the appropriate network, if necessary.
@@ -72,10 +73,8 @@ DOMU=new-domu
 4. Regenerate the host keys so we have new entries.
 
     ```bash
-    rm /etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_dsa_key /etc/ssh/ssh_host_ed25519_key
-    /usr/bin/ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""
-    /usr/bin/ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""
-    /usr/bin/ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ""
+    find /etc/ssh/ -name "ssh_host*key" -exec rm {} \;
+    ssh-keygen -A
     ```
 5. Update the password for root, we cannot have this remain the same.
 
@@ -85,7 +84,7 @@ DOMU=new-domu
 6. Generate a new ssh key pair for root's user.
 
     ```bash
-    rm /root/.ssh/id_rsa
+    rm /root/.ssh/id_rsa*
     ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ""
     ```
 8. Reboot the machine and verify all is working and in order.

@@ -3,3 +3,5 @@ sys-process/lsof
 sys-process/nmon
 net-analyzer/iftop
 net-analyzer/nload
+sys-process/atop
+sys-process/iotop
