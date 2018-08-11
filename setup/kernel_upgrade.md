@@ -28,7 +28,9 @@
 
     ```bash
     cd /usr/src/linux
-    make -j9 && make -j9 modules_install
+    JOBS=$(lscpu | awk '/^CPU\(s\):/ {print $2}')
+    JOBS=$((JOBS + 1 ))
+    make "-j${JOBS}" && make "-j${JOBS}" modules_install
     ```
 5. Rebuild any necessary modules.
 
