@@ -6,10 +6,6 @@
 
     ```bash
     cd /etc
-    echo "app-admin/puppetserver ~amd64" > /etc/portage/package.accept_keywords/puppet
-    echo "app-admin/puppetdb ~amd64" > /etc/portage/package.accept_keywords/puppet
-    echo "app-admin/puppet-agent ~amd64" > /etc/portage/package.accept_keywords/puppet
-    git add /etc/portage/package.accept_keywords/puppet
     echo "app-admin/puppetserver puppetdb" > /etc/portage/package.use/puppet
     echo "app-admin/puppet-agent puppetdb" > /etc/portage/package.use/puppet
     git add /etc/portage/package.use/puppet
@@ -27,7 +23,7 @@
 2. Install puppet-server.
 
     ```bash
-    emerge -avt app-admin/puppetserver
+    emerge -avt app-admin/puppetserver 
     ```
 3. Create a new disk for the code subdirectories. No real need to do this other than the fact that we already have a git repository at `/etc` and `/etc/puppetlabs/code` is going to have subdirectories that are repositories.
 
@@ -50,8 +46,26 @@
     git add fstab
     cd -
     ```
+3. Perform some configuration per the build log.
 
-3. Add puppetserver to the default run level and start it up.
+    ```bash
+    puppet config set --section master vardir  /opt/puppetlabs/server/data/puppetserver
+    puppet config set --section master logdir  /var/log/puppetlabs/puppetserver
+    puppet config set --section master rundir  /run/puppetlabs/puppetserver
+    puppet config set --section master pidfile /run/puppetlabs/puppetserver/puppetserver.pid
+    puppet config set --section master codedir /etc/puppetlabs/code
+    ```
+4. Install some gems or something.
+
+    ```bash
+    cd /opt/puppetlabs/server/apps/puppetserver
+    echo jruby-puppet: { gem-home: /opt/puppetlabs/server/data/puppetserver/vendored-jruby-gems } > jruby.conf
+    while read LINE
+    do
+      java -cp puppet-server-release.jar:jruby-1_7.jar clojure.main -m puppetlabs.puppetserver.cli.gem --config jruby.conf -- install $(echo $LINE |awk '{print $1}') --version $(echo $LINE |awk '{print $2}')
+    done < /opt/puppetlabs/server/data/puppetserver-gem-list.txt
+    ```
+5. Add puppetserver to the default run level and start it up.
 
     ```bash
     eselect rc start puppetserver
