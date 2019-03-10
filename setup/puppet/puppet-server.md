@@ -55,16 +55,7 @@
     puppet config set --section master pidfile /run/puppetlabs/puppetserver/puppetserver.pid
     puppet config set --section master codedir /etc/puppetlabs/code
     ```
-4. Install some gems or something.
-
-    ```bash
-    cd /opt/puppetlabs/server/apps/puppetserver
-    echo jruby-puppet: { gem-home: /opt/puppetlabs/server/data/puppetserver/vendored-jruby-gems } > jruby.conf
-    while read LINE
-    do
-      java -cp puppet-server-release.jar:jruby-1_7.jar clojure.main -m puppetlabs.puppetserver.cli.gem --config jruby.conf -- install $(echo $LINE |awk '{print $1}') --version $(echo $LINE |awk '{print $2}')
-    done < /opt/puppetlabs/server/data/puppetserver-gem-list.txt
-    ```
+4. Install the puppet server gems via [this script](./puppetserver_gem_install.sh).
 5. Add puppetserver to the default run level and start it up.
 
     ```bash
