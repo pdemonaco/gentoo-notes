@@ -3,6 +3,16 @@
 
 https://github.com/Valloric/YouCompleteMe
 
+# Simple Config
+
+It's way easier to just use the external libraries for this module. Basically, just follow the [install guide](https://github.com/Valloric/YouCompleteMe#linux-64-bit) from YCM. Before running this there are likely some dependencies:
+
+```bash
+# Here's some you might need
+emerge -avt net-libs/nodejs
+```
+
+# Old Config
 ## Prep the build environment
 
 Then you'll need some utilities to build. I've installed these natively in my system, however, it may be prudent to leave them out of world.
