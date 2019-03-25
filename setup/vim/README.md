@@ -1,4 +1,3 @@
-
 # YouCompleteMe Setup
 
 https://github.com/Valloric/YouCompleteMe
@@ -9,7 +8,7 @@ It's way easier to just use the external libraries for this module. Basically, j
 
 ```bash
 # Here's some you might need
-emerge -avt net-libs/nodejs
+emerge -avt net-libs/nodejs dev-lang/rust dev-lang/go
 ```
 
 # Old Config
