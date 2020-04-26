@@ -657,25 +657,30 @@ visudo
 We're going to be using dracut as it has better udev support during boot
 than genkernel as of this writing.
 
-First install the application.
+1. First install the application.
 
-```bash
-echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords/dracut
-cd /etc/
-git add portage/package.accept_keywords/dracut
-emerge -av sys-kernel/dracut
-```
+    ```bash
+    echo "sys-kernel/dracut ~amd64" >> /etc/portage/package.accept_keywords/dracut
+    cd /etc/
+    git add portage/package.accept_keywords/dracut
+    emerge -av sys-kernel/dracut
+    ```
+1. With dracut installed we'll need to do some basic configuration in `/etc/dracut.conf.d/`.
 
-With dracut installed we'll need to do some basic configuration in 
-`/etc/dracut.conf.d/`
+    ```bash
+    # modules.conf
+    add_dracutmodules+="zfs"
 
-With this config in place we can go ahead and generate our config
+    # drivers.conf
+    add_drivers+="zfs dm_crypt twofish-avx-x86_64 twofish-x86_64 essiv"
+    ```
+1. With this config in place we can go ahead and generate our config.
 
-```bash
-cd /boot
-dracut --xz --kver ${KERNEL_VERSION} -H
-mv initramfs-${KERNEL_VERSION}.img initramfs-${KERNEL_VERSION}-00.img
-```
+    ```bash
+    cd /boot
+    dracut --xz --kver ${KERNEL_VERSION} -H
+    mv initramfs-${KERNEL_VERSION}.img initramfs-${KERNEL_VERSION}-00.img
+    ```
 
 ### Bootloader
 
