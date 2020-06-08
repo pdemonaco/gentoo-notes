@@ -129,6 +129,7 @@ Note that this portion will only need to be done once, however, if you have exte
 1. Upgrade the modules which will cause the entire package to be rebuilt.
 
     ```bash
+    KERNEL_VERSION="5.4.42"; emerge -avt @module-rebuild && dracut --xz "/boot/initramfs-${KERNEL_VERSION}.img" "${KERNEL_VERSION}" -force
     emerge -avt @module-rebuild
     ```
 
