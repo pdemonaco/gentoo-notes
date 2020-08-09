@@ -107,7 +107,7 @@ case "${ACTION}" in
         ;;
     STOP)
         umount -l /mnt/gentoo/proc /mnt/gentoo/dev /mnt/gentoo/sys
-        zpool export rpool
+        zpool export "${POOL_NAME}"
         ;;
 esac
 
