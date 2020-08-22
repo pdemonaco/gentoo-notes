@@ -43,14 +43,24 @@
 1. Set Direct Rendering Manager (DRM) via KMS as an additional kernel parameter in `/etc/default/grub`.
 
     ```bash
-    GRUB_CMDLINE_LINUX_DEFAULT="nvidia-drm.modeset=1"
+    GRUB_CMDLINE_LINUX_DEFAULT="video=efifb nvidia-drm.modeset=1"
     ```
 1. Add the nvidia modules to the initramfs.
 
     ```bash
     add_drivers+="nvidia nvidia_modeset nvidia_uvm"
     ```
-1. Capture monitor EDID data
+1. TODO - something with this maybe? Capture monitor EDID data
+
+    ```bash
+    modprobe i2c-dev
+    ```
+1. Ensure X server actually deals with the monitors not attached to the NVIDIA card. Done in `~/.xinitrc`
+
+    ```bash
+    xrandr --setprovideroutputsource modesetting NVIDIA-0
+    xrandr --auto
+    ```
 
 ### Bumblebee stuff that didn't work
 
@@ -101,4 +111,6 @@
 * [General Bumblebee Guide](https://wiki.gentoo.org/wiki/NVIDIA/Bumblebee)
 * [Lenovo X1 Guide](https://wiki.gentoo.org/wiki/Lenovo_ThinkPad_X1_Extreme)
 * [Nvidia Driver Config](https://wiki.gentoo.org/wiki/NVIDIA/nvidia-drivers#Kernel)
+* [Nvidia Optimus](https://wiki.gentoo.org/wiki/NVIDIA/Optimus#OpenRC)
 * [Nvidia Driver Config - Arch](https://wiki.archlinux.org/index.php/NVIDIA)
+* [Nvidia xrandr 1.4 guide](http://us.download.nvidia.com/XFree86/Linux-x86_64/450.57/README/randr14.html)
