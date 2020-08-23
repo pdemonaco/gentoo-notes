@@ -1,0 +1,21 @@
+# Sensors located via 
+# find /sys/devices -type f -name "temp*_input"
+sensors:
+  - hwmon: /sys/class/hwmon
+    name: coretemp
+    indices: [1, 2, 3, 4, 5, 6, 7]
+  - hwmon: /sys/class/hwmon
+    name: pch_cannonlake
+    indices: [1]
+  - nvml: 01:00.0
+fans:
+  - tpacpi: /proc/acpi/ibm/fan
+levels:
+  - [ 0,  0, 50 ]
+  - [ 1, 50, 55 ]
+  - [ 2, 55, 60 ]
+  - [ 3, 60, 65 ]
+  - [ 4, 65, 70 ]
+  - [ 5, 70, 75 ]
+  - [ 6, 75, 80 ]
+  - [ 7, 80, 32767 ]
