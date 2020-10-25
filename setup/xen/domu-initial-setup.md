@@ -1,57 +1,75 @@
-#!/bin/bash
+# Initial Install
 
-ZVOL="xen-pl/XEN/vdisk/gentoo-ext4"
+This procedure documents an install from scratch.
 
-#----- Disk Preparation -----------------------------------
-# Create zvol for the guest
-zfs create -V 16g "${ZVOL}"
+## Disk Preparation
+1. Create zvol for the guest.
 
-BLOCK_DEVICE="/dev/zvol/${ZVOL}"
+    ```bash
+    ZVOL="xen-pl/XEN/vdisk/gentoo-ext4"
+    zfs create -V 16g "${ZVOL}"
+    BLOCK_DEVICE="/dev/zvol/${ZVOL}"
+    ```
+2. Partition the file system and format.
 
-# Partition the file system and format
-parted -a optimal /dev/zvol/xen-pl/XEN/vdisk/gentoo-ext4
- unit mib
- mklabel gpt
- mkpart primary 1 129
- name 1 boot
+    ```bash
 
- mkpart primary 129 1153
- name 2 swap
+    parted -a optimal "${BLOCK_DEVICE}"
+     unit mib
+     mklabel gpt
+     mkpart primary 1 129
+     name 1 boot
 
- mkpart primary 1153 -1
- name 3 root
+     mkpart primary 129 1153
+     name 2 swap
 
-# Format the filesystems
-mkfs.ext2 -T small "${BLOCK_DEVICE}-part1"
-mkswap "${BLOCK_DEVICE}-part2"
-mkfs.ext4 "${BLOCK_DEVICE}-part3"
+     mkpart primary 1153 -1
+     name 3 root
+    ```
+3. Format the filesystems.
 
-# Mount the root file system
-mount /dev/xvdb3 /mnt/gentoo
+    ```bash
+    mkfs.ext2 -T small "${BLOCK_DEVICE}-part1"
+    mkswap "${BLOCK_DEVICE}-part2"
+    mkfs.ext4 "${BLOCK_DEVICE}-part3"
+    ```
+4. Pass the disk to another gentoo guest.
+5. Mount the root file system and create both swap and `/boot`
+    
+    ```bash
+    mount /dev/xvdb3 /mnt/gentoo
+    swapon /dev/xvdb2
+    mkdir /mnt/gentoo/boot
+    mount /dev/xvdb1 /mnt/gentoo/boot
+    ```
 
-# Turn on the swap
-swapon /dev/xvdb2
+## Collect Sources 
 
-# Create /boot and mount it
-mkdir /mnt/gentoo/boot
-mount /dev/xvdb1 /mnt/gentoo/boot
+1. Go to the mountpoint
+    
+    ```bash
+    cd /mnt/gentoo
+    ```
+2. Download Sources
 
+    ```bash
+    wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2
+    wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2.DIGESTS
+    ```
 
-#----- Collect Sources ------------------------------------
-## Go to the mountpoint
-cd /mnt/gentoo
+3. Now that we have the sources, check them out to be sure there is no corruption
 
-## Download Sources
-wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2
-wget http://lug.mtu.edu/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20160121.tar.bz2.DIGESTS
+    ```bash
+    grep --color $(openssl dgst -r -sha512 stage3-amd64-*.tar.bz2 \
+        | awk '{print $1}') stage3-amd64-*.tar.bz2.DIGESTS
+    ```
+    Should see a line that matches
 
-## Corruption check
-# Now that we have the sources, check them out
-grep --color $(openssl dgst -r -sha512 stage3-amd64-*.tar.bz2 | awk '{print $1}') stage3-amd64-*.tar.bz2.DIGESTS
-# Should see a line that matches
+4. Extract the tarball
 
-## Extract the tarball
-tar xvjpf stage3-*.tar.bz2 --xattrs
+    ```bash
+    tar xvjpf stage3-*.tar.bz2 --xattrs
+    ```
 
 #----- etc git tracking -----------------------------------
 # Setup git tracking for etc prior to doing anything

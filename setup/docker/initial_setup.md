@@ -20,6 +20,7 @@
     DISK=/dev/sdb
 
     sudo parted -a optimal "${DISK}"
+    unit mib
     mklabel gpt
     mkpart docker-pool 1 -1
     ```
@@ -66,3 +67,4 @@
 ## See Also
 
 * [Gentoo Docker Setup](https://wiki.gentoo.org/wiki/Docker)
+* [Docker ZFS Storage Driver](https://docs.docker.com/storage/storagedriver/zfs-driver/)

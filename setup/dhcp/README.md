@@ -56,3 +56,27 @@
     ```
     ![Example stanza](img/dns_stanza_example.png)
 
+
+# Configure OpenVPN Dynamic Updates
+
+Based on this [guide] largely. 
+
+1. Install the perl module via cpan.
+
+    ```bash
+    cpan Net::OpenVPN::DDNS
+    ```
+2. Generate a new DNSSEC updater key on the server.
+
+    ```bash
+    dnssec-keygen -a HMAC-SHA256 -b 256 -n USER pfsense
+    cp Kpfsense*.key /tmp/
+    chmod 644 /tmp/ Kpfsense.*.key
+    ```
+3. Update the local `named.conf` adding the new pfsense key to the allowed update statements and create the appropriate key file to include.
+4. Log into the pfsense server via ssh and scp the key to `/etc/openvpn/ddns/keys` and rename the file to match the name of the zone.
+
+    ```bash
+    scp <user>@<dns-server>:/tmp/Kpfsense.<key-stuff>.key /etc/openvpn/ddns/keys/<zone-name>
+    chmod 440 /etc/openvpn/ddns/keys/<zone-name>
+    ```

@@ -39,11 +39,11 @@ zpool create -f -o ashift=12 -o autoexpand=on \
     -o feature@lz4_compress=enabled \
     -O normalization=formD \
     xen-pl \
-    mirror ${DISK0}-part1 ${DISK3}-part1 \
-    mirror ${DISK1}-part1 ${DISK4}-part1 \
-    mirror ${DISK2}-part1 ${DISK5}-part1 \
-    log mirror ${CDISK0}-part4 ${CDISK1}-part4 \
-    cache ${CDISK0}-part5 ${CDISK1}-part5
+    mirror "${DISK0}-part1" "${DISK3}-part1" \
+    mirror "${DISK1}-part1" "${DISK4}-part1" \
+    mirror "${DISK2}-part1" "${DISK5}-part1" \
+    log mirror "${CDISK0}-part4" "${CDISK1}-part4" \
+    cache "${CDISK0}-part5" "${CDISK1}-part5"
 
 zfs create -o mountpoint=none xen-pl/XEN
 zfs create -o compression=lz4 -o mountpoint=/etc/xen/config xen-pl/XEN/config
