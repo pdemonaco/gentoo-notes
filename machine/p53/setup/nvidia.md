@@ -12,32 +12,48 @@
 
     ```bash
     Section "ServerLayout"
-        Identifier "layout"
-        Screen 0 "nvidia"
-        Inactive "intel"
+        Identifier     "layout"
+        Screen      0  "nvidia" 0 0
+        Inactive       "intel"
+    EndSection
+
+    Section "Module"
+        Load            "dbe"
+        Load            "extmod"
+        Load            "type1"
+        Load            "freetype"
+        Load            "glx"
     EndSection
 
     Section "Device"
-        Identifier "nvidia"
-        Driver "nvidia"
-        BusID "01:00:0"
-        Option "RegistryDwords" "EnableBrightnessControl=1"
-    EndSection
-
-    Section "Screen"
-        Identifier "nvidia"
-        Device "nvidia"
-        Option "AllowEmptyInitialConfiguration"
+        Identifier      "nvidia"
+        Driver          "nvidia"
+        BusID           "01:00:0"
+        Option          "ForceFullCompositionPipeline" "true"
     EndSection
 
     Section "Device"
-        Identifier "intel"
-        Driver "modesetting"
+        Identifier      "intel"
+        Driver          "modesetting"
     EndSection
 
     Section "Screen"
-        Identifier "intel"
-        Device "intel"
+        Identifier      "nvidia"
+        Device          "nvidia"
+        Monitor         "Monitor0"
+        DefaultDepth    24
+        Option          "AllowEmptyInitialConfiguration"
+        Option          "RegistryDwords" "EnableBrightnessControl=1"
+        SubSection      "Display"
+            Depth       24
+            Modes       "nvidia-auto-select"
+        EndSubSection
+    EndSection
+
+    Section "Screen"
+        Identifier      "intel"
+        Device          "intel"
+        Monitor         "Monitor0"
     EndSection
     ```
 1. Set Direct Rendering Manager (DRM) via KMS as an additional kernel parameter in `/etc/default/grub`.
@@ -45,7 +61,7 @@
     ```bash
     GRUB_CMDLINE_LINUX_DEFAULT="video=efifb nvidia-drm.modeset=1"
     ```
-1. Add the nvidia modules to the initramfs.
+1. Add the nvidia modules to the initramfs (dracut in this case, done via `/etc/dracut.d/drivers.conf`).
 
     ```bash
     add_drivers+="nvidia nvidia_modeset nvidia_uvm"
