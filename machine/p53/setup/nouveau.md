@@ -13,12 +13,12 @@
     CONFIG_DRM_NOUVEAU_BACKLIGHT=y
     # CONFIG_DRM_NOUVEAU_SVM is not set
     ```
-1. Install the nvidia firmware package.
 1. Configure the video card setting in `/etc/portage/make.conf`.
 
     ```ini
     VIDEO_CARDS="nouveau intel"
     ```
+1. Rebuild pulling in the necessary stuff.
 1. Backup `/lib/udev/rules.d/99-nvidia.rules` somewhere so it can be avoided.
 
     ```bash
@@ -73,3 +73,4 @@ Unclear whether this needs to be loaded into the kernel explicitly
 * [Lenovo X1 Guide](https://wiki.gentoo.org/wiki/Lenovo_ThinkPad_X1_Extreme)
 * [Nouveau Optimus](https://nouveau.freedesktop.org/Optimus.html)
 * [Nouveau Gentoo Wiki](https://wiki.gentoo.org/wiki/Nouveau)
+* [Weird Interal Display Bug](https://bugzilla.redhat.com/show_bug.cgi?id=1896904)
