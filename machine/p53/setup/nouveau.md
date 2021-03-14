@@ -68,9 +68,23 @@ This system has a Quadro T1000 (TU117) card. Apparently this is the same as the 
 
 Unclear whether this needs to be loaded into the kernel explicitly
 
+## Patching Kernel Bugs
+
+There was a [Weird Interal Display Bug](https://bugzilla.redhat.com/show_bug.cgi?id=1896904) which caused external displays not to be detected properly when attached via a thunderbolt dock. To correct this it is necessary to patch the kernel if you're running something lower than 5.10.20.
+
+1. Unpack the target kernel
+
+    ```bash
+    KERNEL_VERSION="5.10.19"
+    ebuild "/var/db/repos/gentoo/sys-kernel/gentoo-kernel/gentoo-kernel-${KERNEL_VERSION}.ebuild" clean prepare
+    ```
+1. Move to the kernel work directory.
+1. Initialize it as a git repo.
+1. Make a diff with git and store it in '/etc/portage/patches/sys-kernel/gentoo-kernel-5.10.19'
+
+
 ## NVIDIA Driver Install
 
 * [Lenovo X1 Guide](https://wiki.gentoo.org/wiki/Lenovo_ThinkPad_X1_Extreme)
 * [Nouveau Optimus](https://nouveau.freedesktop.org/Optimus.html)
 * [Nouveau Gentoo Wiki](https://wiki.gentoo.org/wiki/Nouveau)
-* [Weird Interal Display Bug](https://bugzilla.redhat.com/show_bug.cgi?id=1896904)
