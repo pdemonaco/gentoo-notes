@@ -23,7 +23,7 @@
     BUILD=00
     cp "/usr/src/linux/.config" "/etc/kernels/kernel-config-${KERNEL_VERSION}-${BUILD}"
     cd /etc/
-    git add "/etc/kernels/kernel-config-${KERNEL_VERSION}-${BUILD}"
+    git add -f "/etc/kernels/kernel-config-${KERNEL_VERSION}-${BUILD}"
     cd -
     ```
 1. Make the new kernel image and rebuild all modules.
@@ -71,9 +71,7 @@
 2. Remove old files
 
     ```bash
-    KERNEL_VERSION="4.4.52-gentoo"
-    rm -r "/usr/src/linux-${KERNEL_VERSION}"
-    rm -r "/lib/modules/${KERNEL_VERSION}"
+    eclean-kernel -d -A -n1
     ```
 
 ## Additional Detail
